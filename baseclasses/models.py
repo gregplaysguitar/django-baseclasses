@@ -280,6 +280,9 @@ class BaseContentModelWithImages(BaseContentModel):
 class BaseHierarchyModel(models.Model):
     parent = models.ForeignKey('self', null=True, blank=True, related_name='children', limit_choices_to={'parent__isnull': True})
     
+    def __unicode__(self):
+        return ' > '.join([c.name for c in self.get_hierarchy()])
+    
     def get_parent_display(self):
         return self.parent or ''
     get_parent_display.short_description = 'parent'
