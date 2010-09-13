@@ -204,7 +204,7 @@ models.signals.pre_save.connect(set_sort_order)
 
 
 class BaseMediaModel(BaseSortedModel):
-    caption = models.TextField(default='', blank=True)
+    caption = models.CharField(max_length=255, default='', blank=True)
     
     def __unicode__(self):
         return self.caption or str(self.file)
