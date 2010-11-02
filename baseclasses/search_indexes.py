@@ -2,8 +2,7 @@ from haystack import indexes
 from models import BaseImageModel
 import datetime
 
-class BaseIndex(indexes.RealTimeSearchIndex):
-#class BaseIndex(indexes.SearchIndex):
+class BaseIndex(indexes.SearchIndex):
     text = indexes.CharField(document=True, use_template=True)
                 
     name = indexes.CharField(model_attr='name') 
@@ -28,3 +27,4 @@ class BaseIndex(indexes.RealTimeSearchIndex):
     
     class Meta:
         abstract = True
+
