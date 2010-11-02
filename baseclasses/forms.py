@@ -72,7 +72,7 @@ class CustomSearchForm(SearchForm):
 
 
 def searchform_factory(*args, **kwargs):
-    sqs = kwargs.get('sqs', SearchQuerySet()).filter(is_live=True)
+    sqs = kwargs.get('sqs', SearchQuerySet())
 
     class _SearchForm(CustomSearchForm):
         custom_sqs = sqs
@@ -153,7 +153,7 @@ class CustomModelSearchForm(CustomSearchForm):
    
 
 def modelsearchform_factory(models=None):
-    sqs = SearchQuerySet().filter(is_live=True)
+    sqs = SearchQuerySet()
     
     class _SearchForm(CustomModelSearchForm):
         custom_sqs = sqs
