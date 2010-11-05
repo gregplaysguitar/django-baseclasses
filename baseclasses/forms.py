@@ -9,36 +9,22 @@ from django.utils.text import capfirst
 
 
 class CustomSearchForm(SearchForm):
-    load_all = False
-    custom_sqs = None
     
     class Meta:
         abstract = True
-          
+        load_all = False
+        custom_sqs = None
+    
         
-    def get_filter_kwargs(self, extra_data, allowed_models=False):
+    def get_filter_kwargs(self, extra_data):
         kwargs = {}
         
-        if allowed_models == False:
-            allowed_models = self.allowed_models
-            
-        if allowed_models:
-            allowed_apps = [m._meta.app_label for m in allowed_models]
-        else:
-            allowed_apps = None
-        
-        all_apps = [m._meta.app_label for m in site.get_indexed_models()]
+        non_search_fields = getattr(self.Meta, 'non_search_fields', [])
         
         for f in extra_data:
-            if extra_data[f]:
-                app = f.split('_')[0]
-                if app not in all_apps:
-                    # assume a generic field common to all indexes
-                    kwargs[f] = extra_data[f] 
-                elif allowed_apps and (app in allowed_apps):
-                    # assume an app-specific field - include only if app is being searched
-                    kwargs['_'.join(f.split('_')[1:])] = extra_data[f] 
-        #print kwargs               
+            if extra_data[f] and f not in non_search_fields:
+                kwargs[f] = extra_data[f] 
+                            
         return kwargs
         
         
@@ -47,19 +33,16 @@ class CustomSearchForm(SearchForm):
             extra_data = dict(self.cleaned_data).copy()
             extra_data.pop('q')
             
-            sqs = self.custom_sqs or self.searchqueryset
+            sqs = self.Meta.custom_sqs or self.searchqueryset
             
-            if self.allowed_models:
-                sqs = sqs.models(*self.allowed_models)
-            
+            if self.Meta.allowed_models:
+                sqs = sqs.models(*self.Meta.allowed_models)
             
             sqs = sqs.filter(**self.get_filter_kwargs(extra_data))
             
-            #print extra_data, self.get_filter_kwargs(extra_data)
-            
             sqs = sqs.auto_query(self.cleaned_data['q'])
             
-            if self.load_all:
+            if self.Meta.load_all:
                 sqs = sqs.load_all()            
             
             return sqs
@@ -75,8 +58,9 @@ def searchform_factory(*args, **kwargs):
     sqs = kwargs.get('sqs', SearchQuerySet())
 
     class _SearchForm(CustomSearchForm):
-        custom_sqs = sqs
-        allowed_models = args
+        class Meta(CustomSearchForm.Meta):
+            custom_sqs = sqs
+            allowed_models = args
         
     return _SearchForm
     
@@ -85,12 +69,14 @@ def searchform_factory(*args, **kwargs):
 
 
 class CustomModelSearchForm(CustomSearchForm):
-    allowed_models = None # defaults to all, if None specified
-    custom_app_names = {}
-    custom_sqs = None
     
-    class Meta:
+    
+    class Meta(CustomSearchForm.Meta):
         abstract = True
+        allowed_models = None # defaults to all, if None specified
+        custom_app_names = {}
+        custom_sqs = None
+        
     
     def __init__(self, *args, **kwargs):
         super(CustomModelSearchForm, self).__init__(*args, **kwargs)
@@ -105,9 +91,9 @@ class CustomModelSearchForm(CustomSearchForm):
                 model_dict[m._meta.app_label] = []
             model_dict[m._meta.app_label].append(m._meta.module_name)
         
-        choices = [(','.join(("%s.%s" % (app_label, model_name) for model_name in model_dict[app_label])), capfirst(self.custom_app_names.get(app_label, app_label))) for app_label in model_dict]
         
-        #choices = [("%s.%s" % (m._meta.app_label, m._meta.module_name), capfirst(unicode(m._meta.verbose_name_plural))) for m in model_list]
+        choices = [(','.join(("%s.%s" % (app_label, model_name) for model_name in model_dict[app_label])), capfirst(self.Meta.custom_app_names.get(app_label, app_label))) for app_label in model_dict]
+        
         return [('', 'The Entire Site')] + sorted(choices, key=lambda x: x[1])
 
     
@@ -122,13 +108,12 @@ class CustomModelSearchForm(CustomSearchForm):
     
     
     def search(self, *args, **kwargs):
-        #print "valid", self.is_valid()
     
         if self.is_valid():
-            if self.custom_sqs == None:
+            if self.Meta.custom_sqs == None:
                 sqs = self.searchqueryset
             else:
-                sqs = self.custom_sqs
+                sqs = self.Meta.custom_sqs
         
             model_list = self.get_models()
             if model_list:
@@ -137,12 +122,12 @@ class CustomModelSearchForm(CustomSearchForm):
             extra_data = dict(self.cleaned_data).copy()
             extra_data.pop('q')
             extra_data.pop('models')
-            sqs = sqs.filter(**self.get_filter_kwargs(extra_data, model_list))
+            sqs = sqs.filter(**self.get_filter_kwargs(extra_data))
             
             
             sqs = sqs.auto_query(self.cleaned_data['q'])
 
-            if self.load_all:
+            if self.Meta.load_all:
                 sqs = sqs.load_all()            
             
             return sqs 
@@ -156,8 +141,9 @@ def modelsearchform_factory(models=None):
     sqs = SearchQuerySet()
     
     class _SearchForm(CustomModelSearchForm):
-        custom_sqs = sqs
-        allowed_models = models
+        class Meta(CustomModelSearchForm.Meta):
+            custom_sqs = sqs
+            allowed_models = models
         
     return _SearchForm
     
