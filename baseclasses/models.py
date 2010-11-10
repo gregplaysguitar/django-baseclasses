@@ -4,7 +4,7 @@ import datetime
 from django.conf import settings
 #from filefield_enhanced import RemovableFileField, RemovableImageField
 #from helpers import pdf
-
+from fields import ConstrainedImageField
 
 def get_model_attr(instance, attr):
     for field in attr.split('__'):
@@ -216,10 +216,12 @@ class BaseMediaModel(BaseSortedModel):
 
 
 class BaseImageModel(BaseMediaModel):
-    file = models.ImageField(u'image file', upload_to=settings.UPLOAD_PATH)
+    file = ConstrainedImageField(u'image file', upload_to=settings.UPLOAD_PATH)
         
     class Meta(BaseMediaModel.Meta):
         abstract = True
+
+
 
 """class BasePDFModel(BaseMediaModel):
     file = models.FileField(u'PDF file', upload_to=settings.UPLOAD_PATH)
