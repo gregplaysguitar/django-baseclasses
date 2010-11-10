@@ -2,16 +2,9 @@ from haystack import indexes
 from models import BaseImageModel
 import datetime
 
-class BaseIndex(indexes.RealTimeSearchIndex):
-#class BaseIndex(indexes.SearchIndex):
+class BaseIndex(indexes.SearchIndex):
     text = indexes.CharField(document=True, use_template=True)
-    is_live = indexes.BooleanField()
-    def prepare_is_live(self, instance):
-        if hasattr(instance, 'publication_date'):
-            return instance.is_live and (getattr(instance, 'publication_date', None) <= datetime.date.today())
-        else:
-            return instance.is_live
-            
+                
     name = indexes.CharField(model_attr='name') 
     url = indexes.CharField(model_attr='get_absolute_url') 
     image = indexes.CharField()
@@ -25,6 +18,13 @@ class BaseIndex(indexes.RealTimeSearchIndex):
         else:
             return ''
     
+    def get_queryset(self):
+        if hasattr(self.model, 'live'):
+            return self.model.live
+        else:
+            return self.model.objects
+    
     
     class Meta:
         abstract = True
+
