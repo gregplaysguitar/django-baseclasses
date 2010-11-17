@@ -105,7 +105,7 @@ models.signals.pre_save.connect(date_set)
 
 class BaseContentModel(DateAuditModel):
     publication_date = models.DateField(default=datetime.date.today)#, help_text="This is the date from which the item will be shown on the site") # this field is required in order to use LiveManager
-    is_live = models.BooleanField(default=1, help_text="This must be ticked for the item to show on the site.") #help_text="This must be ticked, and 'publication date' must be in the past, for the item to show on the site.")
+    is_live = models.BooleanField(default=1, help_text="This must be ticked, and 'publication date' must be in the past, for the item to show on the site.")
     is_featured = models.BooleanField(default=0)
     
     objects = models.Manager()
