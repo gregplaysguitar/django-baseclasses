@@ -67,7 +67,7 @@ class FeaturedManager(LiveManager):
 
 class FeaturedManagerWithImages(FeaturedManager):
     def get_query_set(self):
-        return super(FeaturedManagerWithImages, self).get_query_set().filter(image_set__isnull=False).distinct()
+        return super(FeaturedManagerWithImages, self).get_query_set().filter(image__isnull=False).distinct()
     
 
 
