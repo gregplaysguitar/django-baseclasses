@@ -1,10 +1,9 @@
 from django.db import models
-from django_extensions.db.fields import AutoSlugField
 import datetime
 from django.conf import settings
 #from filefield_enhanced import RemovableFileField, RemovableImageField
 #from helpers import pdf
-from fields import ConstrainedImageField
+from fields import ConstrainedImageField, AutoSlugField
 
 def get_model_attr(instance, attr):
     for field in attr.split('__'):
