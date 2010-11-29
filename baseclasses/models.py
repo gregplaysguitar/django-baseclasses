@@ -192,7 +192,7 @@ class BaseSortedModel(models.Model):
         
     class Meta:
         abstract = True
-        ordering = ('sort_order', )
+        ordering = ('sort_order', 'id')
 
    
 
