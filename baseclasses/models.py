@@ -215,7 +215,7 @@ class BaseMediaModel(BaseSortedModel):
 
 
 class BaseImageModel(BaseMediaModel):
-    file = ConstrainedImageField(u'image file', upload_to=settings.UPLOAD_PATH)
+    file = ConstrainedImageField(u'image file', upload_to=settings.UPLOAD_PATH, max_dimensions=getattr(settings, 'MAX_IMAGE_DIMENSIONS', None))
         
     class Meta(BaseMediaModel.Meta):
         abstract = True
@@ -270,6 +270,10 @@ class BaseContentModelWithImages(BaseContentModel):
             return None
     class Meta(BaseContentModel.Meta):
         abstract = True
+    
+    @property
+    def image_count(self):
+        return self.image_set.count()
     
     objects = models.Manager()
     live = LiveManager()
