@@ -253,11 +253,13 @@ class BaseAudioModel(BaseMediaModel):
 
 
 class BaseContentModelWithImages(BaseContentModel):
+    @property
     def primary_image(self):
         try:
             return self.image_set.all()[0].file
         except IndexError:
             return None
+    @property
     def primary_image_caption(self):
         try:
             return self.image_set.all()[0].caption

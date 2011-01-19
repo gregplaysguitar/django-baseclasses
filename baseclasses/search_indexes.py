@@ -9,7 +9,7 @@ class BaseIndex(indexes.SearchIndex):
     url = indexes.CharField(model_attr='get_absolute_url') 
     image = indexes.CharField()
     def prepare_image(self, instance):
-        image = instance.primary_image()
+        image = instance.primary_image
         if image:
             if isinstance(image, BaseImageModel):
                 return unicode(image.file)
