@@ -1,10 +1,9 @@
 from django.db import models
-from django_extensions.db.fields import AutoSlugField
 import datetime
 from django.conf import settings
 #from filefield_enhanced import RemovableFileField, RemovableImageField
 #from helpers import pdf
-from fields import ConstrainedImageField
+from fields import ConstrainedImageField, AutoSlugField
 
 def get_model_attr(instance, attr):
     for field in attr.split('__'):
@@ -104,9 +103,9 @@ def date_set(*args, **kwargs):
 models.signals.pre_save.connect(date_set)
 
 class BaseContentModel(DateAuditModel):
-    publication_date = models.DateField(default=datetime.date.today)#, help_text="This is the date from which the item will be shown on the site") # this field is required in order to use LiveManager
-    is_live = models.BooleanField(default=1, help_text="This must be ticked, and 'publication date' must be in the past, for the item to show on the site.")
-    is_featured = models.BooleanField(default=0)
+    publication_date = models.DateField(default=datetime.date.today, db_index=True)#, help_text="This is the date from which the item will be shown on the site") # this field is required in order to use LiveManager
+    is_live = models.BooleanField(default=getattr(settings, 'IS_LIVE_DEFAULT', 1), db_index=True, help_text="This must be ticked, and 'publication date' must be in the past, for the item to show on the site.")
+    is_featured = models.BooleanField(default=0, db_index=True)
     
     objects = models.Manager()
     live = LiveManager()
@@ -192,7 +191,7 @@ class BaseSortedModel(models.Model):
         
     class Meta:
         abstract = True
-        ordering = ('sort_order', )
+        ordering = ('sort_order', 'id')
 
    
 
@@ -216,7 +215,7 @@ class BaseMediaModel(BaseSortedModel):
 
 
 class BaseImageModel(BaseMediaModel):
-    file = ConstrainedImageField(u'image file', upload_to=settings.UPLOAD_PATH)
+    file = ConstrainedImageField(u'image file', upload_to=settings.UPLOAD_PATH, max_dimensions=getattr(settings, 'MAX_IMAGE_DIMENSIONS', None))
         
     class Meta(BaseMediaModel.Meta):
         abstract = True
@@ -254,11 +253,13 @@ class BaseAudioModel(BaseMediaModel):
 
 
 class BaseContentModelWithImages(BaseContentModel):
+    @property
     def primary_image(self):
         try:
             return self.image_set.all()[0].file
         except IndexError:
             return None
+    @property
     def primary_image_caption(self):
         try:
             return self.image_set.all()[0].caption
@@ -271,6 +272,10 @@ class BaseContentModelWithImages(BaseContentModel):
             return None
     class Meta(BaseContentModel.Meta):
         abstract = True
+    
+    @property
+    def image_count(self):
+        return self.image_set.count()
     
     objects = models.Manager()
     live = LiveManager()
