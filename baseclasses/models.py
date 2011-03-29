@@ -1,8 +1,6 @@
 from django.db import models
 import datetime
 from django.conf import settings
-#from filefield_enhanced import RemovableFileField, RemovableImageField
-#from helpers import pdf
 from fields import ConstrainedImageField, AutoSlugField
 
 
@@ -21,14 +19,15 @@ __all__ = (
 
 
 def get_model_attr(instance, attr):
+    """Example usage: get_model_attr(instance, 'category__slug')"""
     for field in attr.split('__'):
         instance = getattr(instance, field)
     return instance
 
 
 
-# used to implement prev() and next() methods in the base models classes below
 def next_or_prev_in_order(instance, prev=False, qs=None):
+    """Used to implement prev() and next() methods in the base models classes below."""
     if not qs:
         qs = instance.__class__.objects
     if prev:
@@ -61,10 +60,11 @@ def next_or_prev_in_order(instance, prev=False, qs=None):
 
 
 
-"""
-Extend this class to get a record of when your model was created and last changed
-"""
+
 class DateAuditModel(models.Model):
+    """
+    Extend this class to get a record of when your model was created and last changed.
+    """
     creation_date = models.DateTimeField(editable=False)
     last_updated = models.DateTimeField(editable=False)
     
@@ -98,13 +98,14 @@ models.signals.pre_save.connect(date_set)
 
 
 
-# gets objects that have is_live on, and publication_date in the past
+
 class LiveManager(models.Manager):
+    """Used to get objects that have is_live on, and publication_date in the past."""
     def get_query_set(self):
         return super(LiveManager, self).get_query_set().filter(is_live=True, publication_date__lte=datetime.datetime.now())
 
-# gets live objects that also have is_featured on
 class FeaturedManager(LiveManager):
+    """Used to get live objects that also have is_featured on."""
     def get_query_set(self):
         return super(FeaturedManager, self).get_query_set().filter(is_featured=True)
     def get_first(self):
@@ -115,13 +116,14 @@ class FeaturedManager(LiveManager):
             return super(FeaturedManager, self).get_query_set()[0]
 
 
-"""
-Provides managers for 'live' and 'featured' instances, based on the is_live 
-& publication_date fields, and the is_featured field respectively.
-Also provides next/prev instance methods for all objects, just live and just
-featured.
-"""
+
 class BaseContentModel(DateAuditModel):
+    """
+    Provides managers for 'live' and 'featured' instances, based on the is_live 
+    & publication_date fields, and the is_featured field respectively.
+    Also provides next/prev instance methods for all objects, just live and just
+    featured.
+    """
     publication_date = models.DateField(default=datetime.date.today, db_index=True)#, help_text="This is the date from which the item will be shown on the site") # this field is required in order to use LiveManager
     is_live = models.BooleanField(default=getattr(settings, 'IS_LIVE_DEFAULT', 1), db_index=True, help_text="This must be ticked, and 'publication date' must be in the past, for the item to show on the site.")
     is_featured = models.BooleanField(default=0, db_index=True)
@@ -158,10 +160,11 @@ models.signals.pre_save.connect(set_publication_date, sender=BaseContentModel)
 
 
 
-"""
-Provides name & auto-slug fields.
-"""
+
 class BaseNamedModel(models.Model):
+    """
+    Provides name & auto-slug fields.
+    """
     name = models.CharField(max_length=100)
     slug = AutoSlugField(populate_from="name")
        
@@ -174,10 +177,11 @@ class BaseNamedModel(models.Model):
 
 
 
-"""
-Provides a sort_order field and orders on it by default
-"""
+
 class BaseSortedModel(models.Model):
+    """
+    Provides a sort_order field and orders on it by default
+    """
     sort_order = models.IntegerField(default=0, blank=True)
         
     class Meta:
@@ -199,22 +203,23 @@ class FeaturedManagerWithImages(FeaturedManager):
     
 
 
-"""
-The same as BaseContentModel, except it requires featured objects to have at least
-one inline image (needs a related Image model with related_name 'image_set')
-Provides primary_image and random_image methods
 
-Example implementation:
-
-class Article(BaseContentModelWithImages):
-    ...
-
-class ArticleImage(BaseImageModel;):
-    article = models.ForeignKey(Article, related_name='image_set')
-
-
-"""
 class BaseContentModelWithImages(BaseContentModel):
+    """
+    The same as BaseContentModel, except it requires featured objects to have at least
+    one inline image (needs a related Image model with related_name 'image_set')
+    Provides primary_image and random_image methods
+    
+    Example implementation:
+    
+    class Article(BaseContentModelWithImages):
+    ...
+    
+    class ArticleImage(BaseImageModel;):
+    article = models.ForeignKey(Article, related_name='image_set')
+    
+    
+    """
     @property
     def primary_image(self):
         try:
@@ -241,10 +246,11 @@ class BaseContentModelWithImages(BaseContentModel):
 
 
 
-"""
-Provides sort_order field and orders on it by default.
-"""
+
 class BaseSortedModel(models.Model):
+    """
+    Provides sort_order field and orders on it by default.
+    """
     sort_order = models.IntegerField(default=0, blank=True)
         
     class Meta:
@@ -258,10 +264,12 @@ def set_sort_order(sender, **kwargs):
 models.signals.pre_save.connect(set_sort_order)
 
 
-"""
-Use this in conjunction with BaseContentModelWithImages - see example above
-"""
+
 class BaseImageModel(BaseSortedModel):
+    """
+    Use this in conjunction with BaseContentModelWithImages - see example in
+    the BaseContentModelWithImages docstring.
+    """
     caption = models.CharField(max_length=255, default='', blank=True)
     file = ConstrainedImageField(u'image file', upload_to=settings.UPLOAD_PATH, max_dimensions=getattr(settings, 'MAX_IMAGE_DIMENSIONS', None))
     
@@ -280,16 +288,17 @@ class BaseImageModel(BaseSortedModel):
 
 
 
-"""
-Provides a simple hierarchy system, for example when categories and subcategories
-are needed. Provides get_hierarchy method, which is primarily useful for getting the 
-top level category for a given category, eg
 
->>> category.get_hierarchy()[0]
-
-Currently only 2 levels are supported - in future this will be configurable.
-"""
 class BaseHierarchyModel(models.Model):
+    """
+    Provides a simple hierarchy system, for example when categories and subcategories
+    are needed. Provides get_hierarchy method, which is primarily useful for getting the 
+    top level category for a given category, eg
+    
+    >>> category.get_hierarchy()[0]
+    
+    Currently only 2 levels are supported - in future this will be configurable.
+    """
     parent = models.ForeignKey('self', null=True, blank=True, related_name='children', limit_choices_to={'parent__isnull': True})
     
     def __unicode__(self):

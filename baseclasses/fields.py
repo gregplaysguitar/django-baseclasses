@@ -5,16 +5,17 @@ import re
 
 
 
-"""
-Resizes the image on upload and overwrites the original - example
 
-class MyModel(models.Model):
-    image = ConstrainedImageField(u'image file', upload_to=settings.UPLOAD_PATH, max_dimensions='1024x768')
-
-
-"""
 class ConstrainedImageField(ImageField):
-    # image field that resizes if the file is too big
+    """
+    Resizes the image on upload and overwrites the original.
+    Example:
+    
+    class MyModel(models.Model):
+        image = ConstrainedImageField(u'image file', upload_to=settings.UPLOAD_PATH, max_dimensions='1024x768')
+    
+    """
+    
     def __init__(self, *args, **kwargs):
         self.max_dimensions = kwargs.pop('max_dimensions', None)
         super(ConstrainedImageField, self).__init__(*args, **kwargs)
@@ -47,10 +48,6 @@ class ConstrainedImageField(ImageField):
 
 
 
-""" 
-borrowed from django_extensions - see
-https://github.com/django-extensions/django-extensions/blob/master/django_extensions/db/fields/__init__.py
-"""
 class AutoSlugField(SlugField):
     """ AutoSlugField
 
@@ -71,6 +68,10 @@ class AutoSlugField(SlugField):
 
     Inspired by SmileyChris' Unique Slugify snippet:
     http://www.djangosnippets.org/snippets/690/
+    
+    Borrowed from django_extensions - see
+    https://github.com/django-extensions/django-extensions/blob/master/django_extensions/db/fields/__init__.py
+
     """
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('blank', True)
