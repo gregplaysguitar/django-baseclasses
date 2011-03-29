@@ -202,10 +202,9 @@ Example implementation:
 class Article(BaseContentModelWithImages):
     ...
 
-class ArticleImage(models.Model):
-    image = models.ImageField(...)
+class ArticleImage(BaseImageModel;):
     article = models.ForeignKey(Article, related_name='image_set')
-    ...
+
 
 """
 class BaseContentModelWithImages(BaseContentModel):
@@ -232,6 +231,45 @@ class BaseContentModelWithImages(BaseContentModel):
     objects = models.Manager()
     live = LiveManager()
     featured = FeaturedManagerWithImages()
+
+
+
+"""
+Provides sort_order field and orders on it by default.
+"""
+class BaseSortedModel(models.Model):
+    sort_order = models.IntegerField(default=0, blank=True)
+        
+    class Meta:
+        abstract = True
+        ordering = ('sort_order', 'id')
+
+def set_sort_order(sender, **kwargs):
+    if isinstance(kwargs['instance'], BaseSortedModel):
+        if not getattr(kwargs['instance'], 'sort_order', None):
+            kwargs['instance'].sort_order = 0
+models.signals.pre_save.connect(set_sort_order)
+
+
+"""
+Use this in conjunction with BaseContentModelWithImages - see example above
+"""
+class BaseImageModel(BaseSortedModel):
+    caption = models.CharField(max_length=255, default='', blank=True)
+    file = ConstrainedImageField(u'image file', upload_to=settings.UPLOAD_PATH, max_dimensions=getattr(settings, 'MAX_IMAGE_DIMENSIONS', None))
+    
+    def __unicode__(self):
+        return self.caption or str(self.file)
+        
+    class Meta(BaseSortedModel.Meta):
+        abstract = True
+        ordering = BaseSortedModel.Meta.ordering + ('caption',)
+
+
+
+
+
+
 
 
 
@@ -271,3 +309,4 @@ def check_tree(sender, **kwargs):
             kwargs['instance'].parent = None
 models.signals.pre_save.connect(check_tree)
     
+
