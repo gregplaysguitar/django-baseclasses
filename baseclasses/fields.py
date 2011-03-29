@@ -4,6 +4,15 @@ from django.template.defaultfilters import slugify
 import re
 
 
+
+"""
+Resizes the image on upload and overwrites the original - example
+
+class MyModel(models.Model):
+    image = ConstrainedImageField(u'image file', upload_to=settings.UPLOAD_PATH, max_dimensions='1024x768')
+
+
+"""
 class ConstrainedImageField(ImageField):
     # image field that resizes if the file is too big
     def __init__(self, *args, **kwargs):

@@ -5,11 +5,27 @@ from django.conf import settings
 #from helpers import pdf
 from fields import ConstrainedImageField, AutoSlugField
 
+
+__all__ = (
+    'BaseContentModel',
+    'BaseNamedModel',
+    'DateAuditModel',
+    'BaseSortedModel'
+    'BaseContentModelWithImages',
+    'BaseHierarchyModel',
+)
+
+
+
+
 def get_model_attr(instance, attr):
     for field in attr.split('__'):
         instance = getattr(instance, field)
     return instance
-   
+
+
+
+# used to implement prev() and next() methods in the base models classes below
 def next_or_prev_in_order(instance, prev=False, qs=None):
     if not qs:
         qs = instance.__class__.objects
@@ -19,7 +35,6 @@ def next_or_prev_in_order(instance, prev=False, qs=None):
     else:
         lookup = 'gt'
     
-  
     q_list = []
     prev_fields = []
     if qs.model._meta.ordering:
@@ -35,41 +50,18 @@ def next_or_prev_in_order(instance, prev=False, qs=None):
             this_lookup = lookup
         q_kwargs = dict([(f, get_model_attr(instance, f)) for f in prev_fields])
         q_kwargs["%s__%s" % (field, this_lookup)] = get_model_attr(instance, field)
-        #print q_kwargs
         q_list.append(models.Q(**q_kwargs))
         prev_fields.append(field)
     try:
-        #print q_list
-        #print qs.filter(reduce(models.Q.__or__, q_list))
         return qs.filter(reduce(models.Q.__or__, q_list))[0]
     except IndexError:
         return None
 
 
 
-
-class LiveManager(models.Manager):
-    def get_query_set(self):
-        return super(LiveManager, self).get_query_set().filter(is_live=True, publication_date__lte=datetime.datetime.now())
-
-        
-class FeaturedManager(LiveManager):
-    def get_query_set(self):
-        return super(FeaturedManager, self).get_query_set().filter(is_featured=True)
-    def get_first(self):
-        # gets first featured item, but falls back to first live item if none featured
-        try:
-            return self.get_query_set()[0]
-        except IndexError:
-            return super(FeaturedManager, self).get_query_set()[0]
-
-
-class FeaturedManagerWithImages(FeaturedManager):
-    def get_query_set(self):
-        return super(FeaturedManagerWithImages, self).get_query_set().filter(image__isnull=False).distinct()
-    
-
-
+"""
+Extend this class to get a record of when your model was created and last changed
+"""
 class DateAuditModel(models.Model):
     creation_date = models.DateTimeField(editable=False)
     last_updated = models.DateTimeField(editable=False)
@@ -102,6 +94,33 @@ def date_set(*args, **kwargs):
         kwargs['instance'].last_updated = datetime.datetime.now()
 models.signals.pre_save.connect(date_set)
 
+
+
+class LiveManager(models.Manager):
+    def get_query_set(self):
+        return super(LiveManager, self).get_query_set().filter(is_live=True, publication_date__lte=datetime.datetime.now())
+        
+class FeaturedManager(LiveManager):
+    def get_query_set(self):
+        return super(FeaturedManager, self).get_query_set().filter(is_featured=True)
+    def get_first(self):
+        # gets first featured item, but falls back to first live item if none featured
+        try:
+            return self.get_query_set()[0]
+        except IndexError:
+            return super(FeaturedManager, self).get_query_set()[0]
+
+class FeaturedManagerWithImages(FeaturedManager):
+    def get_query_set(self):
+        return super(FeaturedManagerWithImages, self).get_query_set().filter(image__isnull=False).distinct()
+    
+
+"""
+Provides managers for 'live' and 'featured' instances, based on the is_live 
+& publication_date fields, and the is_featured field respectively.
+Also provides next/prev instance methods for all objects, just live and just
+featured.
+"""
 class BaseContentModel(DateAuditModel):
     publication_date = models.DateField(default=datetime.date.today, db_index=True)#, help_text="This is the date from which the item will be shown on the site") # this field is required in order to use LiveManager
     is_live = models.BooleanField(default=getattr(settings, 'IS_LIVE_DEFAULT', 1), db_index=True, help_text="This must be ticked, and 'publication date' must be in the past, for the item to show on the site.")
@@ -131,8 +150,6 @@ class BaseContentModel(DateAuditModel):
         return next_or_prev_in_order(self, False, self.__class__.featured)
     
     
-
-
 def set_publication_date(sender, **kwargs):
     if not getattr(kwargs['instance'], 'publication_date', None):
         kwargs['instance'].publication_date = datetime.date.today()
@@ -140,6 +157,10 @@ models.signals.pre_save.connect(set_publication_date, sender=BaseContentModel)
 
 
 
+
+"""
+Provides name & auto-slug fields.
+"""
 class BaseNamedModel(models.Model):
     name = models.CharField(max_length=100)
     slug = AutoSlugField(populate_from="name")
@@ -152,38 +173,6 @@ class BaseNamedModel(models.Model):
         abstract = True
 
 
-class BaseLongNamedModel(models.Model):
-    name = models.CharField(max_length=255)
-    slug = AutoSlugField(populate_from="name")
-       
-    def __unicode__(self):
-        return self.name
-    
-    class Meta:
-        ordering = ('name',)
-        abstract = True
-
-"""
-def populate_slug(sender, **kwargs):
-    if isinstance(kwargs['instance'], BaseNamedModel):
-        #print kwargs['instance'].name
-        pass
-models.signals.pre_save.connect(populate_slug)
-"""
-
-class BasePersonModel(models.Model):
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    slug = AutoSlugField(populate_from=('first_name', 'last_name'))
-       
-    def __unicode__(self):
-        return "%s %s" % (self.first_name, self.last_name)
-    
-    class Meta:
-        ordering = ('last_name', 'first_name',)
-        abstract = True
-  
-
 
 
 class BaseSortedModel(models.Model):
@@ -193,8 +182,6 @@ class BaseSortedModel(models.Model):
         abstract = True
         ordering = ('sort_order', 'id')
 
-   
-
 def set_sort_order(sender, **kwargs):
     if isinstance(kwargs['instance'], BaseSortedModel):
         if not getattr(kwargs['instance'], 'sort_order', None):
@@ -202,72 +189,37 @@ def set_sort_order(sender, **kwargs):
 models.signals.pre_save.connect(set_sort_order)
 
 
-class BaseMediaModel(BaseSortedModel):
-    caption = models.CharField(max_length=255, default='', blank=True)
-    
-    def __unicode__(self):
-        return self.caption or str(self.file)
-        
-    class Meta:
-        abstract = True
-        ordering = BaseSortedModel.Meta.ordering + ('caption',)
-   
-
-
-class BaseImageModel(BaseMediaModel):
-    file = ConstrainedImageField(u'image file', upload_to=settings.UPLOAD_PATH, max_dimensions=getattr(settings, 'MAX_IMAGE_DIMENSIONS', None))
-        
-    class Meta(BaseMediaModel.Meta):
-        abstract = True
 
 
 
-"""class BasePDFModel(BaseMediaModel):
-    file = models.FileField(u'PDF file', upload_to=settings.UPLOAD_PATH)
-    text = models.TextField(editable=False, default='')
-        
-    class Meta(BaseMediaModel.Meta):
-        abstract = True
-def pdf_text(sender, **kwargs):
-    if isinstance(kwargs['instance'], BasePDFModel):
-        kwargs['instance'].text = pdf.pdf_to_text(kwargs['instance'].file)
-models.signals.pre_save.connect(pdf_text)
 """
+The same as BaseContentModel, except it requires featured objects to have at least
+one inline image (needs a related Image model with related_name 'image_set')
+Provides primary_image and random_image methods
 
-class BaseVideoModel(BaseMediaModel):
-    file = models.FileField(u'video file', upload_to=settings.UPLOAD_PATH)
-        
-    class Meta(BaseMediaModel.Meta):
-        abstract = True
+Example implementation:
 
+class Article(BaseContentModelWithImages):
+    ...
 
-class BaseAudioModel(BaseMediaModel):
-    file = models.FileField(u'audio file', upload_to=settings.UPLOAD_PATH)
-        
-    class Meta(BaseMediaModel.Meta):
-        abstract = True
+class ArticleImage(models.Model):
+    image = models.ImageField(...)
+    article = models.ForeignKey(Article, related_name='image_set')
+    ...
 
-
-
-
-
-
+"""
 class BaseContentModelWithImages(BaseContentModel):
     @property
     def primary_image(self):
         try:
-            return self.image_set.all()[0].file
+            return self.image_set.all()[0]
         except IndexError:
             return None
+    
     @property
-    def primary_image_caption(self):
-        try:
-            return self.image_set.all()[0].caption
-        except IndexError:
-            return None
     def random_image(self):
         try:
-            return self.image_set.all().order_by('?')[0].file
+            return self.image_set.all().order_by('?')[0]
         except IndexError:
             return None
     class Meta(BaseContentModel.Meta):
@@ -283,7 +235,15 @@ class BaseContentModelWithImages(BaseContentModel):
 
 
 
+"""
+Provides a simple hierarchy system, for example when categories and subcategories
+are needed. Provides get_hierarchy method, which is primarily useful for getting the 
+top level category for a given category, eg
 
+>>> category.get_hierarchy()[0]
+
+Currently only 2 levels are supported - in future this will be configurable.
+"""
 class BaseHierarchyModel(models.Model):
     parent = models.ForeignKey('self', null=True, blank=True, related_name='children', limit_choices_to={'parent__isnull': True})
     
@@ -310,26 +270,4 @@ def check_tree(sender, **kwargs):
         or kwargs['instance'].parent == kwargs['instance']:
             kwargs['instance'].parent = None
 models.signals.pre_save.connect(check_tree)
-    
-
-
-
-""" 
-class BaseVimeoModel(models.Model):
-    vimeo_url = models.URLField(help_text="Should be of the form http://vimeo.com/1234567")
-    caption = models.CharField(max_length=255, default='', blank=True)
-    sort_order = models.IntegerField(default=0, blank=True)
-    
-    def __unicode__(self):
-        return self.caption
-        
-    class Meta:
-        abstract = True
-        ordering = ('sort_order', 'caption')
-    
-    def vimeo_id(self):
-        return self.vimeo_url.replace('http://vimeo.com/', '').replace('http://www.vimeo.com/', '')
-"""
-   
-
     
