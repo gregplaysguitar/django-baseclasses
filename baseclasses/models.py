@@ -12,6 +12,8 @@ __all__ = (
     'DateAuditModel',
     'BaseSortedModel'
     'BaseContentModelWithImages',
+    'BaseImageModel',
+    'BaseSortedModel',
     'BaseHierarchyModel',
 )
 
@@ -96,10 +98,12 @@ models.signals.pre_save.connect(date_set)
 
 
 
+# gets objects that have is_live on, and publication_date in the past
 class LiveManager(models.Manager):
     def get_query_set(self):
         return super(LiveManager, self).get_query_set().filter(is_live=True, publication_date__lte=datetime.datetime.now())
-        
+
+# gets live objects that also have is_featured on
 class FeaturedManager(LiveManager):
     def get_query_set(self):
         return super(FeaturedManager, self).get_query_set().filter(is_featured=True)
@@ -110,10 +114,6 @@ class FeaturedManager(LiveManager):
         except IndexError:
             return super(FeaturedManager, self).get_query_set()[0]
 
-class FeaturedManagerWithImages(FeaturedManager):
-    def get_query_set(self):
-        return super(FeaturedManagerWithImages, self).get_query_set().filter(image__isnull=False).distinct()
-    
 
 """
 Provides managers for 'live' and 'featured' instances, based on the is_live 
@@ -174,7 +174,9 @@ class BaseNamedModel(models.Model):
 
 
 
-
+"""
+Provides a sort_order field and orders on it by default
+"""
 class BaseSortedModel(models.Model):
     sort_order = models.IntegerField(default=0, blank=True)
         
@@ -190,6 +192,11 @@ models.signals.pre_save.connect(set_sort_order)
 
 
 
+# manager for featured objects that requires the object to have an image
+class FeaturedManagerWithImages(FeaturedManager):
+    def get_query_set(self):
+        return super(FeaturedManagerWithImages, self).get_query_set().filter(image__isnull=False).distinct()
+    
 
 
 """
