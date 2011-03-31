@@ -20,7 +20,6 @@ __all__ = (
     'BaseContentModel',
     'BaseNamedModel',
     'DateAuditModel',
-    'BaseSortedModel',
     'BaseContentModelWithImages',
     'BaseImageModel',
     'BaseSortedModel',
