@@ -14,6 +14,7 @@ class ConstrainedImageField(ImageField):
     def _resize_image(self, filename, size):
         WIDTH, HEIGHT = 0, 1
         from PIL import Image, ImageOps
+        Image.MAXBLOCK = 1024 * 1024 * 20 # Attempt to fix the "Suspension not allowed here" error
         img = Image.open(filename)
         if img.size[WIDTH] > size[WIDTH] or img.size[HEIGHT] > size[HEIGHT]:
             img.thumbnail((size[WIDTH], size[HEIGHT]), Image.ANTIALIAS)
