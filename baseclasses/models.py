@@ -307,7 +307,7 @@ class BaseHierarchyModel(models.Model):
 def check_tree(sender, **kwargs):
     if isinstance(kwargs['instance'], BaseHierarchyModel):
         if kwargs['instance'].pk and kwargs['instance'].children.all().count() \
-        or kwargs['instance'].parent == kwargs['instance']:
+        or kwargs['instance'].parent_id == kwargs['instance'].pk:
             kwargs['instance'].parent = None
 models.signals.pre_save.connect(check_tree)
     
