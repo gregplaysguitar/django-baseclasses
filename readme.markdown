@@ -1,10 +1,8 @@
 `baseclasses` is a set of tools I find useful and have used on numerous projects. 
 
-#### 30/3/2011 update:
-Currently I'm working on getting this ready for public consumption - the
-springcleaning branch has had all of the experimental cruft removed, and 
-docstrings etc added. Once I'm satisfied that it's useful and usable, this
-will become the master branch. 
+#### 10/6/2011 update:
+The master branch has been in use on several live sites for a few months now,
+so I'm confident it's ready for public use. Old cruft is in the legacy branch.
 
 
 #### An example:
