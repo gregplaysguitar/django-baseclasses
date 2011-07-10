@@ -190,10 +190,10 @@ class BaseContentModelWithImages(BaseContentModel):
     Example implementation:
     
     class Article(BaseContentModelWithImages):
-    ...
+        ...
     
     class ArticleImage(BaseImageModel;):
-    article = models.ForeignKey(Article, related_name='image_set')
+        article = models.ForeignKey(Article, related_name='image_set')
         
     """
     
