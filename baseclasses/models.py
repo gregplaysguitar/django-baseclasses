@@ -118,16 +118,16 @@ class BaseContentModel(DateAuditModel):
         return next_or_prev_in_order(self, False, qs or self.__class__.objects)
     
     def prev_live(self):
-        return next_or_prev_in_order(self, True, self.__class__.live)
+        return self.prev(self.__class__.live)
         
     def next_live(self):
-        return next_or_prev_in_order(self, False, self.__class__.live)
+        return next(self.__class__.live)
 
     def prev_featured(self):
-        return next_or_prev_in_order(self, True, self.__class__.featured)
+        return prev(self.__class__.featured)
         
     def next_featured(self):
-        return next_or_prev_in_order(self, False, self.__class__.featured)
+        return next(self.__class__.featured)
     
 
 
