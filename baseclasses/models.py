@@ -121,13 +121,13 @@ class BaseContentModel(DateAuditModel):
         return self.prev(self.__class__.live)
         
     def next_live(self):
-        return next(self.__class__.live)
+        return self.next(self.__class__.live)
 
     def prev_featured(self):
-        return prev(self.__class__.featured)
+        return self.prev(self.__class__.featured)
         
     def next_featured(self):
-        return next(self.__class__.featured)
+        return self.next(self.__class__.featured)
     
 
 
