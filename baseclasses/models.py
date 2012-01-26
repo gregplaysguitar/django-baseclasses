@@ -224,26 +224,6 @@ class BaseContentModelWithImages(BaseContentModel):
 
 
 
-
-class BaseSortedModel(models.Model):
-    """Provides sort_order field and orders on it by default."""
-    
-    sort_order = models.IntegerField(default=0, blank=True)
-        
-    class Meta:
-        abstract = True
-        ordering = ('sort_order', 'id')
-
-
-
-def set_sort_order(sender, **kwargs):
-    if isinstance(kwargs['instance'], BaseSortedModel):
-        if not getattr(kwargs['instance'], 'sort_order', None):
-            kwargs['instance'].sort_order = 0
-models.signals.pre_save.connect(set_sort_order)
-
-
-
 class BaseImageModel(BaseSortedModel):
     """Use this in conjunction with BaseContentModelWithImages.
     
