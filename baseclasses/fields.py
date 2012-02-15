@@ -12,7 +12,7 @@ class ConstrainedImageField(ImageField):
     Example:
     
     class MyModel(models.Model):
-        image = ConstrainedImageField(u'image file', upload_to=settings.UPLOAD_PATH, max_dimensions='1024x768')
+        image = ConstrainedImageField(u'image file', upload_to=settings.UPLOAD_PATH, max_dimensions=(1024, 768))
     
     """
     
