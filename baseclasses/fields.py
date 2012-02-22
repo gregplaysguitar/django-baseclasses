@@ -74,8 +74,9 @@ class AutoSlugField(SlugField):
 
     """
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('blank', True)
+        kwargs.setdefault('blank', False)
         kwargs.setdefault('editable', False)
+        kwargs.setdefault('unique', True)
 
         populate_from = kwargs.pop('populate_from', None)
         if populate_from is None:
