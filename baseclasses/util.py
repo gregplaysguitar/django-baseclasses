@@ -8,7 +8,6 @@ def get_model_attr(instance, attr):
     return instance
 
 
-
 def next_or_prev_in_order(instance, prev=False, qs=None):
     """Used to implement prev() and next() methods in the base models classes below."""
     if not qs:
@@ -18,14 +17,14 @@ def next_or_prev_in_order(instance, prev=False, qs=None):
         lookup = 'lt'
     else:
         lookup = 'gt'
-    
+
     q_list = []
     prev_fields = []
     if qs.model._meta.ordering:
         ordering = list(qs.model._meta.ordering)
     else:
         ordering = []
-    
+
     for field in (ordering + ['pk',]):
         if field[0] == '-':
             this_lookup = (lookup == 'gt' and 'lt' or 'gt')
@@ -42,20 +41,17 @@ def next_or_prev_in_order(instance, prev=False, qs=None):
         return None
 
 
-
-
-
 class LambdaManager(models.Manager):
     """LambdaManager is a simple manager extension that is instantiated with a callable.
-    
-    This callable is passed the query set by get_query_set so that it can perform any 
+
+    This callable is passed the query set by get_query_set so that it can perform any
     additional transformations to it such as eg filtering.
     """
     def __init__(self, f):
         super(LambdaManager, self).__init__()
-        
+
         self.transform = f
-        
+
     def get_query_set(self):
         return self.transform(super(LambdaManager, self).get_query_set())
 

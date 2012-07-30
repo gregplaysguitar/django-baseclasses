@@ -89,23 +89,19 @@ class FeaturedManager(LiveManager):
 
 
 class BaseContentModel(DateAuditModel):
-    """Provides managers for 'live' and 'featured' instances, based on the is_live 
-    & publication_date fields, and the is_featured field respectively.
-    Also provides next/prev instance methods for all objects, just live and just
-    featured.
+    """Provides managers for 'live' instances, based on the is_live & 
+    publication_date fields. Also provides next/prev instance methods 
+    for all objects and just live objects, respecting the value of 
+    Meta.ordering.
     """
     
-    publication_date = models.DateField(default=datetime.date.today, db_index=True)#, help_text="This is the date from which the item will be shown on the site") # this field is required in order to use LiveManager
+    publication_date = models.DateField(default=datetime.date.today, db_index=True)
     is_live = models.BooleanField(default=getattr(settings, 'IS_LIVE_DEFAULT', 1), 
                                   db_index=True, 
-                                  help_text="This must be ticked, and 'publication date' must"
-                                            " be in the past, for the item to show on the"
-                                            " site.")
-    is_featured = models.BooleanField(default=0, db_index=True)
+                                  help_text="This must be ticked, and 'publication date' must be in the past, for the item to show on the site.")
     
     objects = models.Manager()
     live = LiveManager()
-    featured = FeaturedManager()
     
     class Meta(DateAuditModel.Meta):
         abstract = True
@@ -121,14 +117,7 @@ class BaseContentModel(DateAuditModel):
         return self.prev(self.__class__.live)
         
     def next_live(self):
-        return next(self.__class__.live)
-
-    def prev_featured(self):
-        return prev(self.__class__.featured)
-        
-    def next_featured(self):
-        return next(self.__class__.featured)
-    
+        return self.next(self.__class__.live)
 
 
 def set_publication_date(sender, **kwargs):
@@ -136,6 +125,27 @@ def set_publication_date(sender, **kwargs):
         kwargs['instance'].publication_date = datetime.date.today()
 models.signals.pre_save.connect(set_publication_date, sender=BaseContentModel)
 
+
+class BaseFeaturedContentModel(BaseContentModel):
+    """Similar to BaseContentModel but provides additional manager
+    for 'featured' instances, using the is_featured field. Also 
+    provides next/prev instance methods for featured objects.
+    """
+
+    is_featured = models.BooleanField(default=0, db_index=True)
+        
+    objects = models.Manager()
+    live = LiveManager()
+    featured = FeaturedManager()
+
+    class Meta(BaseContentModel.Meta):
+        abstract = True
+
+    def prev_featured(self):
+        return self.prev(self.__class__.featured)
+        
+    def next_featured(self):
+        return self.next(self.__class__.featured)
 
 
 class BaseNamedModel(models.Model):
@@ -171,31 +181,13 @@ def set_sort_order(sender, **kwargs):
 models.signals.pre_save.connect(set_sort_order)
 
 
-
-class FeaturedManagerWithImages(FeaturedManager):
-    """Manager for featured objects that requires the object to have an image."""
-    
-    def get_query_set(self):
-        return super(FeaturedManagerWithImages, 
-                     self).get_query_set().filter(image_set__isnull=False).distinct()
-    
-
-
-class BaseContentModelWithImages(BaseContentModel):
-    """The same as BaseContentModel, except it requires featured objects to have at least
-    one inline image (needs a related Image model with related_name 'image_set').
-    
-    Provides primary_image and random_image methods
-    
-    Example implementation:
-    
-    class Article(BaseContentModelWithImages):
-        ...
-    
-    class ArticleImage(BaseImageModel;):
-        article = models.ForeignKey(Article, related_name='image_set')
-        
+class BaseModelWithImages(models.Model):
+    """Basic model for use with related images (needs a related Image model
+    with the related_name 'image_set').
     """
+
+    class Meta:
+        abstract = True
     
     @property
     def primary_image(self):
@@ -211,12 +203,38 @@ class BaseContentModelWithImages(BaseContentModel):
         except IndexError:
             return None
     
-    class Meta(BaseContentModel.Meta):
-        abstract = True
-    
     @property
     def image_count(self):
         return self.image_set.count()
+
+
+class FeaturedManagerWithImages(FeaturedManager):
+    """Manager for featured objects that requires the object to have an image."""
+    
+    def get_query_set(self):
+        return super(FeaturedManagerWithImages, 
+                     self).get_query_set().filter(image_set__isnull=False).distinct()
+    
+
+
+class BaseContentModelWithImages(BaseFeaturedContentModel, BaseModelWithImages):
+    """The same as BaseContentModel, except it requires featured objects to have at least
+    one inline image (needs a related Image model with related_name 'image_set').
+    
+    Provides primary_image and random_image methods
+    
+    Example implementation:
+    
+    class Article(BaseContentModelWithImages):
+        ...
+    
+    class ArticleImage(BaseImageModel;):
+        article = models.ForeignKey(Article, related_name='image_set')
+        
+    """
+
+    class Meta(BaseFeaturedContentModel.Meta):
+        abstract = True
     
     objects = models.Manager()
     live = LiveManager()
@@ -225,7 +243,7 @@ class BaseContentModelWithImages(BaseContentModel):
 
 
 class BaseImageModel(BaseSortedModel):
-    """Use this in conjunction with BaseContentModelWithImages.
+    """Use this in conjunction with BaseModelWithImages or BaseContentModelWithImages.
     
     For an example see the BaseContentModelWithImages docstring."""
 

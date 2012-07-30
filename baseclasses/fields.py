@@ -12,7 +12,7 @@ class ConstrainedImageField(ImageField):
     Example:
     
     class MyModel(models.Model):
-        image = ConstrainedImageField(u'image file', upload_to=settings.UPLOAD_PATH, max_dimensions='1024x768')
+        image = ConstrainedImageField(u'image file', upload_to=settings.UPLOAD_PATH, max_dimensions=(1024, 768))
     
     """
     
@@ -74,8 +74,9 @@ class AutoSlugField(SlugField):
 
     """
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('blank', True)
+        kwargs.setdefault('blank', False)
         kwargs.setdefault('editable', False)
+        kwargs.setdefault('unique', True)
 
         populate_from = kwargs.pop('populate_from', None)
         if populate_from is None:
