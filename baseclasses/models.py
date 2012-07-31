@@ -64,7 +64,7 @@ models.signals.pre_save.connect(date_set)
 
 
 class LiveManager(models.Manager):
-    """Used to get objects that have is_live on, and publication_date in the past."""
+    """Used to get objects that have is_live on, and a non-future publication_date."""
     
     def get_query_set(self):
         return super(LiveManager, self).get_query_set() \
@@ -98,7 +98,7 @@ class BaseContentModel(DateAuditModel):
     publication_date = models.DateField(default=datetime.date.today, db_index=True)
     is_live = models.BooleanField(default=getattr(settings, 'IS_LIVE_DEFAULT', 1), 
                                   db_index=True, 
-                                  help_text="This must be ticked, and 'publication date' must be in the past, for the item to show on the site.")
+                                  help_text="This must be ticked, and 'publication date' must not be in the future, for the item to show on the site.")
     
     objects = models.Manager()
     live = LiveManager()
