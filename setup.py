@@ -1,10 +1,10 @@
-import cms
+import baseclasses
 from setuptools import setup, find_packages
 from setuptools.command.test import test
 
 setup(
-    name='djangocms2000',
-    version=cms.__version__,
+    name='django-baseclasses',
+    version=baseclasses.__version__,
     description='A set of reusable base classes and helpers for django',
     long_description=open('readme.markdown').read(),
     author='Greg Brown',
