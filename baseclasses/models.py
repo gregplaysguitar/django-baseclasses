@@ -148,21 +148,6 @@ class BaseFeaturedContentModel(BaseContentModel):
         return self.next(self.__class__.featured)
 
 
-class BaseNamedModel(models.Model):
-    """Provides name & auto-slug fields."""
-    
-    name = models.CharField(max_length=100)
-    slug = AutoSlugField(populate_from="name")
-       
-    def __unicode__(self):
-        return self.name
-    
-    class Meta:
-        ordering = ('name',)
-        abstract = True
-
-
-
 class BaseSortedModel(models.Model):
     """Provides a sort_order field and orders on it by default."""
     
@@ -171,7 +156,6 @@ class BaseSortedModel(models.Model):
     class Meta:
         abstract = True
         ordering = ('sort_order', 'id')
-
 
 
 def set_sort_order(sender, **kwargs):
