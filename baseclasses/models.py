@@ -13,7 +13,7 @@ BaseHierarchyModel
 from django.db import models
 import datetime
 from django.conf import settings
-from fields import ConstrainedImageField, AutoSlugField
+from fields import ConstrainedImageField
 from util import next_or_prev_in_order
 
 __all__ = (
