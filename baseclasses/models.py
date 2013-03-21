@@ -1,7 +1,6 @@
 """A collection of mixins and associated utilities for django models.
 
 BaseContentModel
-BaseNamedModel
 DateAuditModel
 BaseSortedModel
 BaseContentModelWithImages
@@ -18,7 +17,6 @@ from util import next_or_prev_in_order
 
 __all__ = (
     'BaseContentModel',
-    'BaseNamedModel',
     'DateAuditModel',
     'BaseContentModelWithImages',
     'BaseImageModel',
