@@ -41,9 +41,9 @@ class DateAuditModel(models.Model):
     get_last_updated_display.admin_order_field = 'last_updated'
     get_last_updated_display.short_description = "Last updated"
     
-    def prev(self):
+    def get_prev(self):
         return next_or_prev_in_order(self, True, self.__class__.objects)
-    def next(self):
+    def get_next(self):
         return next_or_prev_in_order(self, False, self.__class__.objects)
     
     class Meta:
@@ -105,10 +105,10 @@ class BaseContentModel(DateAuditModel):
         abstract = True
         ordering = ('-publication_date', '-creation_date',)
 
-    def prev(self, qs=None):
+    def get_prev(self, qs=None):
         return next_or_prev_in_order(self, True, qs or self.__class__.objects)
         
-    def next(self, qs=None):
+    def get_next(self, qs=None):
         return next_or_prev_in_order(self, False, qs or self.__class__.objects)
     
     def prev_live(self):
