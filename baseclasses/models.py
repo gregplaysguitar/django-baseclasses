@@ -1,24 +1,19 @@
 """A collection of mixins and associated utilities for django models.
 
-BaseContentModel
-DateAuditModel
-BaseSortedModel
-BaseContentModelWithImages
-BaseImageModel
-BaseSortedModeL
-BaseHierarchyModel
 """
 
-from django.db import models
 import datetime
+
+from django.db import models
 from django.conf import settings
+
 from fields import ConstrainedImageField
 from util import next_or_prev_in_order
+
 
 __all__ = (
     'BaseContentModel',
     'DateAuditModel',
-    'BaseContentModelWithImages',
     'BaseImageModel',
     'BaseSortedModel',
     'BaseHierarchyModel',
@@ -43,13 +38,13 @@ class DateAuditModel(models.Model):
     
     def get_prev(self):
         return next_or_prev_in_order(self, True, self.__class__.objects)
+    
     def get_next(self):
         return next_or_prev_in_order(self, False, self.__class__.objects)
     
     class Meta:
         abstract = True
         ordering = ('-creation_date',)
-
 
 
 def date_set(*args, **kwargs):
@@ -60,7 +55,6 @@ def date_set(*args, **kwargs):
 models.signals.pre_save.connect(date_set)
 
 
-
 class LiveManager(models.Manager):
     """Used to get objects that have is_live on, and a non-future publication_date."""
     
@@ -68,22 +62,6 @@ class LiveManager(models.Manager):
         return super(LiveManager, self).get_query_set() \
                                        .filter(is_live=True, 
                                                publication_date__lte=datetime.datetime.now())
-
-
-
-class FeaturedManager(LiveManager):
-    """Used to get live objects that also have is_featured on."""
-    
-    def get_query_set(self):
-        return super(FeaturedManager, self).get_query_set().filter(is_featured=True)
-        
-    def get_first(self):
-        # gets first featured item, but falls back to first live item if none featured
-        try:
-            return self.get_query_set()[0]
-        except IndexError:
-            return super(FeaturedManager, self).get_query_set()[0]
-
 
 
 class BaseContentModel(DateAuditModel):
@@ -96,7 +74,8 @@ class BaseContentModel(DateAuditModel):
     publication_date = models.DateField(default=datetime.date.today, db_index=True)
     is_live = models.BooleanField(default=getattr(settings, 'IS_LIVE_DEFAULT', 1), 
                                   db_index=True, 
-                                  help_text="This must be ticked, and 'publication date' must not be in the future, for the item to show on the site.")
+                                  help_text="This must be ticked, and 'publication date' must"
+                                            "not be in the future, for the item to show on the site.")
     
     objects = models.Manager()
     live = LiveManager()
@@ -124,28 +103,6 @@ def set_publication_date(sender, **kwargs):
 models.signals.pre_save.connect(set_publication_date, sender=BaseContentModel)
 
 
-class BaseFeaturedContentModel(BaseContentModel):
-    """Similar to BaseContentModel but provides additional manager
-    for 'featured' instances, using the is_featured field. Also 
-    provides next/prev instance methods for featured objects.
-    """
-
-    is_featured = models.BooleanField(default=0, db_index=True)
-        
-    objects = models.Manager()
-    live = LiveManager()
-    featured = FeaturedManager()
-
-    class Meta(BaseContentModel.Meta):
-        abstract = True
-
-    def prev_featured(self):
-        return self.prev(self.__class__.featured)
-        
-    def next_featured(self):
-        return self.next(self.__class__.featured)
-
-
 class BaseSortedModel(models.Model):
     """Provides a sort_order field and orders on it by default."""
     
@@ -165,7 +122,17 @@ models.signals.pre_save.connect(set_sort_order)
 
 class BaseModelWithImages(models.Model):
     """Basic model for use with related images (needs a related Image model
-    with the related_name 'image_set').
+    with the related_name 'image_set'). Provides primary_image method.
+    
+    Example implementation:
+    
+    class Article(BaseModelWithImages):
+        ...
+    
+    class ArticleImage(BaseImageModel;):
+        article = models.ForeignKey(Article, related_name='image_set')
+    
+    >>> Article.objects.get(...).primary_image()
     """
 
     class Meta:
@@ -177,60 +144,15 @@ class BaseModelWithImages(models.Model):
             return self.image_set.all()[0]
         except IndexError:
             return None
-    
-    @property
-    def random_image(self):
-        try:
-            return self.image_set.all().order_by('?')[0]
-        except IndexError:
-            return None
-    
-    @property
-    def image_count(self):
-        return self.image_set.count()
-
-
-class FeaturedManagerWithImages(FeaturedManager):
-    """Manager for featured objects that requires the object to have an image."""
-    
-    def get_query_set(self):
-        return super(FeaturedManagerWithImages, 
-                     self).get_query_set().filter(image_set__isnull=False).distinct()
-    
-
-
-class BaseContentModelWithImages(BaseFeaturedContentModel, BaseModelWithImages):
-    """The same as BaseContentModel, except it requires featured objects to have at least
-    one inline image (needs a related Image model with related_name 'image_set').
-    
-    Provides primary_image and random_image methods
-    
-    Example implementation:
-    
-    class Article(BaseContentModelWithImages):
-        ...
-    
-    class ArticleImage(BaseImageModel;):
-        article = models.ForeignKey(Article, related_name='image_set')
-        
-    """
-
-    class Meta(BaseFeaturedContentModel.Meta):
-        abstract = True
-    
-    objects = models.Manager()
-    live = LiveManager()
-    featured = FeaturedManagerWithImages()
-
 
 
 class BaseImageModel(BaseSortedModel):
     """Use this in conjunction with BaseModelWithImages or BaseContentModelWithImages.
     
-    For an example see the BaseContentModelWithImages docstring."""
+    For an example see the BaseModelWithImages docstring."""
 
     caption = models.CharField(max_length=255, default='', blank=True)
-    file = ConstrainedImageField(u'image file', upload_to=settings.UPLOAD_PATH, 
+    file = ConstrainedImageField(u'image file', upload_to=settings.UPLOAD_PATH, max_length=200,
                                  max_dimensions=getattr(settings, 'MAX_IMAGE_DIMENSIONS',
                                                         None))
     
@@ -242,7 +164,6 @@ class BaseImageModel(BaseSortedModel):
         ordering = BaseSortedModel.Meta.ordering + ('caption',)
 
 
-
 class BaseHierarchyModel(models.Model):
     """Provides a simple hierarchy system.
     
@@ -251,7 +172,7 @@ class BaseHierarchyModel(models.Model):
     
     >>> category.get_hierarchy()[0]
     
-    Currently only 2 levels are supported - in future this will be configurable.
+    Currently only 2 levels are supported.
     """
     
     parent = models.ForeignKey('self', null=True, blank=True, 
@@ -277,12 +198,10 @@ class BaseHierarchyModel(models.Model):
         abstract = True
 
 
-  
 def check_tree(sender, **kwargs):
     if isinstance(kwargs['instance'], BaseHierarchyModel):
         if kwargs['instance'].pk and kwargs['instance'].children.all().count() \
         or kwargs['instance'].parent == kwargs['instance']:
             kwargs['instance'].parent = None
 models.signals.pre_save.connect(check_tree)
-    
 
