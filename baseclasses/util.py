@@ -51,7 +51,11 @@ class LambdaManager(models.Manager):
         super(LambdaManager, self).__init__()
 
         self.transform = f
-
+    
+    def get_queryset(self):
+        return self.transform(super(LambdaManager, self).get_queryset())
+    
+    # backwards-compatibility
     def get_query_set(self):
         return self.transform(super(LambdaManager, self).get_query_set())
 
