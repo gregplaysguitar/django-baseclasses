@@ -56,12 +56,20 @@ models.signals.pre_save.connect(date_set)
 
 
 class LiveManager(models.Manager):
-    """Used to get objects that have is_live on, and a non-future publication_date."""
+    """Used to get objects that have is_live on, and a non-future 
+       publication_date."""
     
+    def filter_qs(self, qs):
+        return qs.filter(is_live=True,
+                         publication_date__lte=datetime.datetime.now())
+    
+    def get_queryset(self):
+        return self.filter_qs(super(LiveManager, self).get_queryset())
+    
+    # for backwards-compatibility
     def get_query_set(self):
-        return super(LiveManager, self).get_query_set() \
-                                       .filter(is_live=True, 
-                                               publication_date__lte=datetime.datetime.now())
+        return self.filter_qs(super(LiveManager, self).get_query_set())
+                                       
 
 
 class BaseContentModel(DateAuditModel):
