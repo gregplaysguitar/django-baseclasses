@@ -79,11 +79,12 @@ class BaseContentModel(DateAuditModel):
     Meta.ordering.
     """
     
-    publication_date = models.DateField(default=datetime.date.today, db_index=True)
-    is_live = models.BooleanField(default=getattr(settings, 'IS_LIVE_DEFAULT', 1), 
-                                  db_index=True, 
-                                  help_text="This must be ticked, and 'publication date' must"
-                                            "not be in the future, for the item to show on the site.")
+    publication_date = models.DateField(default=datetime.date.today, 
+                                        db_index=True)
+    is_live = models.BooleanField(db_index=True,
+        default=getattr(settings, 'IS_LIVE_DEFAULT', 1), 
+        help_text="This must be ticked, and 'publication date' must "
+                  "not be in the future, for the item to show on the site.")
     
     objects = models.Manager()
     live = LiveManager()
