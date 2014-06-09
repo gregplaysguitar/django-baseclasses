@@ -21,7 +21,8 @@ __all__ = (
 
 
 class DateAuditModel(models.Model):
-    """Extend this class to get a record of when your model was created and last changed."""
+    """Extend this class to get a record of when your model was created and 
+       last changed."""
     
     creation_date = models.DateTimeField(editable=False)
     last_updated = models.DateTimeField(editable=False)
@@ -74,10 +75,9 @@ class LiveManager(models.Manager):
 
 class BaseContentModel(DateAuditModel):
     """Provides managers for 'live' instances, based on the is_live & 
-    publication_date fields. Also provides next/prev instance methods 
-    for all objects and just live objects, respecting the value of 
-    Meta.ordering.
-    """
+       publication_date fields. Also provides next/prev instance methods 
+       for all objects and just live objects, respecting the value of 
+       Meta.ordering."""
     
     publication_date = models.DateField(default=datetime.date.today, 
                                         db_index=True)
@@ -131,18 +131,17 @@ models.signals.pre_save.connect(set_sort_order)
 
 class BaseModelWithImages(models.Model):
     """Basic model for use with related images (needs a related Image model
-    with the related_name 'image_set'). Provides primary_image method.
-    
-    Example implementation:
-    
-    class Article(BaseModelWithImages):
-        ...
-    
-    class ArticleImage(BaseImageModel;):
-        article = models.ForeignKey(Article, related_name='image_set')
-    
-    >>> Article.objects.get(...).primary_image()
-    """
+       with the related_name 'image_set'). Provides primary_image method.
+       
+       Example implementation:
+       
+       class Article(BaseModelWithImages):
+           ...
+       
+       class ArticleImage(BaseImageModel;):
+           article = models.ForeignKey(Article, related_name='image_set')
+       
+       >>> Article.objects.get(...).primary_image()"""
 
     class Meta:
         abstract = True
@@ -156,9 +155,10 @@ class BaseModelWithImages(models.Model):
 
 
 class BaseImageModel(BaseSortedModel):
-    """Use this in conjunction with BaseModelWithImages or BaseContentModelWithImages.
-    
-    For an example see the BaseModelWithImages docstring."""
+    """Use this in conjunction with BaseModelWithImages or 
+       BaseContentModelWithImages.
+       
+       For an example see the BaseModelWithImages docstring."""
 
     caption = models.CharField(max_length=255, default='', blank=True)
     file = ConstrainedImageField(u'image file', upload_to=settings.UPLOAD_PATH, max_length=255,
