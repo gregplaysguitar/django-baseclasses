@@ -174,15 +174,14 @@ class BaseImageModel(BaseSortedModel):
 
 
 class BaseHierarchyModel(models.Model):
-    """Provides a simple hierarchy system.
-    
-    For example when categories and subcategories are needed. Provides get_hierarchy method, 
-    which is primarily useful for getting the top level category for a given category, eg
-    
-    >>> category.get_hierarchy()[0]
-    
-    Currently only 2 levels are supported.
-    """
+    """Provides a simple hierarchy system, useful when categories and 
+       subcategories are needed. Provides get_hierarchy method, which is 
+       primarily useful for getting the top level category for a given 
+       category, eg
+       
+       >>> category.get_hierarchy()[0]
+       
+       Currently only 2 levels are supported."""
     
     parent = models.ForeignKey('self', null=True, blank=True, 
                                related_name='children', 
