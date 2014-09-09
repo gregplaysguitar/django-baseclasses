@@ -1,4 +1,5 @@
 from django.db.models.fields.files import ImageField
+from django.core.exceptions import ImproperlyConfigured
 from django.db.models import signals, SlugField
 from django.template.defaultfilters import slugify
 import re
@@ -20,7 +21,6 @@ class ConstrainedImageField(ImageField):
         self.max_dimensions = kwargs.pop('max_dimensions', None)
         super(ConstrainedImageField, self).__init__(*args, **kwargs)
 
-
     def _resize_image(self, filename, size):
         WIDTH, HEIGHT = 0, 1
         from PIL import Image, ImageOps
@@ -32,8 +32,7 @@ class ConstrainedImageField(ImageField):
                 img.save(filename, optimize=1)
             except IOError:
                 img.save(filename)
-
-
+    
     def _constrain_image(self, instance=None, **kwargs):
         if getattr(instance, self.name) and self.max_dimensions:
             filename = getattr(instance, self.name).path
@@ -52,7 +51,16 @@ class ConstrainedImageField(ImageField):
         args, kwargs = introspector(self)
         # That's our definition!
         return (field_class, args, kwargs)
+        
+    def deconstruct(self):
+        name, path, args, kwargs = \
+            super(ConstrainedImageField, self).deconstruct()
+        
+        # Only include kwarg if it's not the default
+        if self.max_dimensions != None:
+            kwargs['max_dimensions'] = self.max_dimensions
 
+        return name, path, args, kwargs
 
 
 class AutoSlugField(SlugField):
@@ -183,3 +191,17 @@ class AutoSlugField(SlugField):
         args, kwargs = introspector(self)
         # That's our definition!
         return (field_class, args, kwargs)
+
+    def deconstruct(self):
+        name, path, args, kwargs = super(SlugField, self).deconstruct()
+
+        # Only include kwarg if it's not the default
+        kwargs['populate_from'] = self._populate_from
+
+        if self.separator != u'-':
+            kwargs['separator'] = self.separator
+
+        if self.overwrite != False:
+            kwargs['overwrite'] = self.overwrite
+
+        return name, path, args, kwargs

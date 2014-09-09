@@ -161,9 +161,8 @@ class BaseImageModel(BaseSortedModel):
        For an example see the BaseModelWithImages docstring."""
 
     caption = models.CharField(max_length=255, default='', blank=True)
-    file = ConstrainedImageField(u'image file', upload_to=settings.UPLOAD_PATH, max_length=255,
-                                 max_dimensions=getattr(settings, 'MAX_IMAGE_DIMENSIONS',
-                                                        None))
+    file = ConstrainedImageField(u'image file', upload_to=settings.UPLOAD_PATH,
+        max_dimensions=getattr(settings, 'MAX_IMAGE_DIMENSIONS', None))
     
     def __unicode__(self):
         return self.caption or str(self.file)
