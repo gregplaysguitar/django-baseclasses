@@ -56,21 +56,10 @@ def date_set(*args, **kwargs):
 models.signals.pre_save.connect(date_set)
 
 
-class LiveManager(models.Manager):
-    """Used to get objects that have is_live on, and a non-future 
-       publication_date."""
-    
-    def filter_qs(self, qs):
-        return qs.filter(is_live=True,
-                         publication_date__lte=datetime.datetime.now())
-    
-    def get_queryset(self):
-        return self.filter_qs(super(LiveManager, self).get_queryset())
-    
-    # for backwards-compatibility
-    def get_query_set(self):
-        return self.filter_qs(super(LiveManager, self).get_query_set())
-                                       
+class ContentModelQuerySet(models.QuerySet):
+    def live(self):
+        return self.filter(is_live=True,
+                           publication_date__lte=datetime.datetime.now())
 
 
 class BaseContentModel(DateAuditModel):
@@ -86,8 +75,7 @@ class BaseContentModel(DateAuditModel):
         help_text="This must be ticked, and 'publication date' must "
                   "not be in the future, for the item to show on the site.")
     
-    objects = models.Manager()
-    live = LiveManager()
+    objects = ContentModelQuerySet.as_manager()
     
     class Meta(DateAuditModel.Meta):
         abstract = True
