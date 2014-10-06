@@ -62,6 +62,10 @@ class ContentModelQuerySet(models.QuerySet):
                            publication_date__lte=datetime.datetime.now())
 
 
+class ContentModelManager(models.Manager):
+    use_for_related_fields = True
+
+
 class BaseContentModel(DateAuditModel):
     """Provides managers for 'live' instances, based on the is_live & 
        publication_date fields. Also provides next/prev instance methods 
@@ -75,7 +79,7 @@ class BaseContentModel(DateAuditModel):
         help_text="This must be ticked, and 'publication date' must "
                   "not be in the future, for the item to show on the site.")
     
-    objects = ContentModelQuerySet.as_manager()
+    objects = ContentModelManager.from_queryset(ContentModelQuerySet)()
     
     class Meta(DateAuditModel.Meta):
         abstract = True
