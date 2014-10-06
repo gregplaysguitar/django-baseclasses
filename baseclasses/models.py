@@ -92,10 +92,10 @@ class BaseContentModel(DateAuditModel):
         return next_or_prev_in_order(self, False, qs or self.__class__.objects)
     
     def prev_live(self):
-        return self.get_prev(self.__class__.live)
+        return self.get_prev(self.__class__.objects.live())
         
     def next_live(self):
-        return self.get_next(self.__class__.live)
+        return self.get_next(self.__class__.objects.live())
 
 
 def set_publication_date(sender, **kwargs):
