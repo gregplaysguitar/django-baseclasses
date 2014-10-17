@@ -62,7 +62,7 @@ class ContentModelQuerySet(models.QuerySet):
                            publication_date__lte=datetime.datetime.now())
 
 
-class ContentModelManager(models.Manager):
+class ContentModelManager(models.Manager.from_queryset(ContentModelQuerySet)):
     use_for_related_fields = True
 
 
@@ -79,7 +79,7 @@ class BaseContentModel(DateAuditModel):
         help_text="This must be ticked, and 'publication date' must "
                   "not be in the future, for the item to show on the site.")
     
-    objects = ContentModelManager.from_queryset(ContentModelQuerySet)()
+    objects = ContentModelManager()
     
     class Meta(DateAuditModel.Meta):
         abstract = True
