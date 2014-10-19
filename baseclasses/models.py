@@ -62,8 +62,14 @@ class ContentModelQuerySet(models.QuerySet):
                            publication_date__lte=datetime.datetime.now())
 
 
-class ContentModelManager(models.Manager.from_queryset(ContentModelQuerySet)):
-    use_for_related_fields = True
+def default_manager_from_qs(QuerySet, **kwargs):
+    related = kwargs.pop('use_for_related_fields', True)
+    class _Manager(models.Manager.from_queryset(QuerySet)):
+        use_for_related_fields = related
+    return _Manager
+
+
+ContentModelManager = default_manager_from_qs(ContentModelQuerySet)
 
 
 class BaseContentModel(DateAuditModel):
