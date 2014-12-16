@@ -37,11 +37,11 @@ class DateAuditModel(models.Model):
     get_last_updated_display.admin_order_field = 'last_updated'
     get_last_updated_display.short_description = "Last updated"
     
-    def get_prev(self):
-        return next_or_prev_in_order(self, True, self.__class__.objects)
-    
-    def get_next(self):
-        return next_or_prev_in_order(self, False, self.__class__.objects)
+    def get_prev(self, qs=None, loop=False):
+        return next_or_prev_in_order(self, True, qs, loop)
+        
+    def get_next(self, qs=None, loop=False):
+        return next_or_prev_in_order(self, False, qs, loop)
     
     class Meta:
         abstract = True
@@ -90,18 +90,12 @@ class BaseContentModel(DateAuditModel):
     class Meta(DateAuditModel.Meta):
         abstract = True
         ordering = ('-publication_date', '-creation_date',)
-
-    def get_prev(self, qs=None):
-        return next_or_prev_in_order(self, True, qs or self.__class__.objects)
-        
-    def get_next(self, qs=None):
-        return next_or_prev_in_order(self, False, qs or self.__class__.objects)
     
-    def prev_live(self):
-        return self.get_prev(self.__class__.objects.live())
+    def prev_live(self, loop=False):
+        return self.get_prev(self.__class__.objects.live(), loop)
         
-    def next_live(self):
-        return self.get_next(self.__class__.objects.live())
+    def next_live(self, loop=False):
+        return self.get_next(self.__class__.objects.live(), loop)
 
 
 def set_publication_date(sender, **kwargs):

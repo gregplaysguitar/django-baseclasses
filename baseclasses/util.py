@@ -8,8 +8,12 @@ def get_model_attr(instance, attr):
     return instance
 
 
-def next_or_prev_in_order(instance, prev=False, qs=None):
-    """Used to implement prev() and next() methods in the base models classes below."""
+def next_or_prev_in_order(instance, prev=False, qs=None, loop=False):
+    """Get the next (or previous with prev=True) item for instance, from the 
+       given queryset (which is assumed to contain instance) respecting 
+       queryset ordering. If loop is True, return the first/last item when the
+       end/start is reached. """
+    
     if not qs:
         qs = instance.__class__.objects
     if prev:
@@ -38,15 +42,17 @@ def next_or_prev_in_order(instance, prev=False, qs=None):
     try:
         return qs.filter(reduce(models.Q.__or__, q_list))[0]
     except IndexError:
-        return None
+        length = qs.count()
+        if loop and length > 1:
+            return qs[(length - 1) if prev else 0]
+    return None
 
 
 class LambdaManager(models.Manager):
-    """LambdaManager is a simple manager extension that is instantiated with a callable.
-
-    This callable is passed the query set by get_query_set so that it can perform any
-    additional transformations to it such as eg filtering.
-    """
+    """LambdaManager is a simple manager extension that is instantiated with a 
+       callable, which performs additional transformations - such as
+       filtering - on the queryset. """
+    
     def __init__(self, f):
         super(LambdaManager, self).__init__()
 
