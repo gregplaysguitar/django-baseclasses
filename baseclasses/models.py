@@ -30,7 +30,7 @@ class DateAuditModel(models.Model):
     def get_creation_date_display(self):
         return self.creation_date.strftime("%Y-%m-%d %H:%M:%S")
     get_creation_date_display.admin_order_field = 'creation_date'
-    get_creation_date_display.short_description = "Creation date"
+    get_creation_date_display.short_description = "Created"
     
     def get_last_updated_display(self):
         return self.last_updated.strftime("%Y-%m-%d %H:%M:%S")
@@ -59,7 +59,7 @@ models.signals.pre_save.connect(date_set)
 class ContentModelQuerySet(models.QuerySet):
     def live(self):
         return self.filter(is_live=True,
-                           publication_date__lte=datetime.datetime.now())
+                           pub_date__lte=datetime.datetime.now())
 
 
 def default_manager_from_qs(QuerySet, **kwargs):
@@ -74,12 +74,12 @@ ContentModelManager = default_manager_from_qs(ContentModelQuerySet)
 
 class BaseContentModel(DateAuditModel):
     """Provides managers for 'live' instances, based on the is_live & 
-       publication_date fields. Also provides next/prev instance methods 
+       pub_date fields. Also provides next/prev instance methods 
        for all objects and just live objects, respecting the value of 
        Meta.ordering."""
     
-    publication_date = models.DateField(default=datetime.date.today, 
-                                        db_index=True)
+    pub_date = models.DateField(u'publication date', db_index=True,
+                                default=datetime.date.today)
     is_live = models.BooleanField(db_index=True,
         default=getattr(settings, 'IS_LIVE_DEFAULT', 1), 
         help_text="This must be ticked, and 'publication date' must "
@@ -89,7 +89,7 @@ class BaseContentModel(DateAuditModel):
     
     class Meta(DateAuditModel.Meta):
         abstract = True
-        ordering = ('-publication_date', '-creation_date',)
+        ordering = ('-pub_date', '-creation_date',)
     
     def prev_live(self, loop=False):
         return self.get_prev(self.__class__.objects.live(), loop)
@@ -98,10 +98,10 @@ class BaseContentModel(DateAuditModel):
         return self.get_next(self.__class__.objects.live(), loop)
 
 
-def set_publication_date(sender, **kwargs):
-    if not getattr(kwargs['instance'], 'publication_date', None):
-        kwargs['instance'].publication_date = datetime.date.today()
-models.signals.pre_save.connect(set_publication_date, sender=BaseContentModel)
+def set_pub_date(sender, **kwargs):
+    if not getattr(kwargs['instance'], 'pub_date', None):
+        kwargs['instance'].pub_date = datetime.date.today()
+models.signals.pre_save.connect(set_pub_date, sender=BaseContentModel)
 
 
 class BaseSortedModel(models.Model):
@@ -203,4 +203,3 @@ def check_tree(sender, **kwargs):
         or kwargs['instance'].parent == kwargs['instance']:
             kwargs['instance'].parent = None
 models.signals.pre_save.connect(check_tree)
-
