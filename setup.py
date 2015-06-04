@@ -1,18 +1,25 @@
-import baseclasses
+#!/usr/bin/env python
+# coding: utf8
+
 from setuptools import setup, find_packages
 from setuptools.command.test import test
 
+# avoid importing the module 
+exec(open('baseclasses/_version.py').read())
+
 setup(
     name='django-baseclasses',
-    version=baseclasses.__version__,
+    version=__version__,
     description='A set of reusable base classes and helpers for django',
     long_description=open('readme.markdown').read(),
     author='Greg Brown',
     author_email='greg@gregbrown.co.nz',
     url='https://github.com/gregplaysguitar/django-baseclasses',
-    packages=find_packages(exclude=['tests', 'tests.*']),
-    platforms='any',
+    packages=find_packages(),
+    include_package_data=True,
     zip_safe=False,
+    platforms='any',
+    install_requires=['Django>=1.7'],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
