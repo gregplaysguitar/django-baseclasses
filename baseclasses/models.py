@@ -13,31 +13,12 @@ from .fields import ConstrainedImageField
 from .util import next_or_prev_in_order
 
 
-__all__ = (
-    'BaseContentModel',
-    'DateAuditModel',
-    'BaseImageModel',
-    'BaseSortedModel',
-    'BaseHierarchyModel',
-)
-
-
 class DateAuditModel(models.Model):
     """Extend this class to get a record of when your model was created and 
        last changed."""
     
     creation_date = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
-    
-    def get_creation_date_display(self):
-        return self.creation_date.strftime("%Y-%m-%d %H:%M:%S")
-    get_creation_date_display.admin_order_field = 'creation_date'
-    get_creation_date_display.short_description = "Created"
-    
-    def get_last_updated_display(self):
-        return self.last_updated.strftime("%Y-%m-%d %H:%M:%S")
-    get_last_updated_display.admin_order_field = 'last_updated'
-    get_last_updated_display.short_description = "Last updated"
     
     def get_prev(self, qs=None, loop=False):
         return next_or_prev_in_order(self, True, qs, loop)
