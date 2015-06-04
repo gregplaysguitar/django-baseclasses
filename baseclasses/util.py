@@ -48,20 +48,3 @@ def next_or_prev_in_order(instance, prev=False, qs=None, loop=False):
         if loop and length > 1:
             return qs[(length - 1) if prev else 0]
     return None
-
-
-class LambdaManager(models.Manager):
-    """LambdaManager is a simple manager extension that is instantiated with a 
-       callable, which performs additional transformations - such as
-       filtering - on the queryset. """
-    
-    def __init__(self, f):
-        super(LambdaManager, self).__init__()
-        self.transform = f
-    
-    def get_queryset(self):
-        return self.transform(super(LambdaManager, self).get_queryset())
-    
-    # backwards-compatibility
-    def get_query_set(self):
-        return self.transform(super(LambdaManager, self).get_query_set())
