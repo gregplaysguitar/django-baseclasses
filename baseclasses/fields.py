@@ -1,10 +1,9 @@
+import re
+
 from django.db.models.fields.files import ImageField
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models import signals, SlugField
 from django.template.defaultfilters import slugify
-import re
-
-
 
 
 class ConstrainedImageField(ImageField):
