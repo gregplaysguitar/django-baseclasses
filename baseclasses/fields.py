@@ -1,9 +1,7 @@
-import re
+# coding: utf8
 
 from django.db.models.fields.files import ImageField
-from django.core.exceptions import ImproperlyConfigured
-from django.db.models import signals, SlugField
-from django.template.defaultfilters import slugify
+from django.db.models import signals
 
 
 class ConstrainedImageField(ImageField):

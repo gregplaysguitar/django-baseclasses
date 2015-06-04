@@ -1,3 +1,5 @@
+# coding: utf8
+
 """A collection of mixins and associated utilities for django models.
 
 """
@@ -7,8 +9,8 @@ import datetime
 from django.db import models
 from django.conf import settings
 
-from fields import ConstrainedImageField
-from util import next_or_prev_in_order
+from .fields import ConstrainedImageField
+from .util import next_or_prev_in_order
 
 
 __all__ = (
@@ -24,8 +26,8 @@ class DateAuditModel(models.Model):
     """Extend this class to get a record of when your model was created and 
        last changed."""
     
-    creation_date = models.DateTimeField(editable=False)
-    last_updated = models.DateTimeField(editable=False)
+    creation_date = models.DateTimeField(auto_now_add=True)
+    last_updated = models.DateTimeField(auto_now=True)
     
     def get_creation_date_display(self):
         return self.creation_date.strftime("%Y-%m-%d %H:%M:%S")
@@ -46,14 +48,6 @@ class DateAuditModel(models.Model):
     class Meta:
         abstract = True
         ordering = ('-creation_date',)
-
-
-def date_set(*args, **kwargs):
-    if isinstance(kwargs['instance'], DateAuditModel):
-        if not kwargs['instance'].creation_date:
-            kwargs['instance'].creation_date = datetime.datetime.now()
-        kwargs['instance'].last_updated = datetime.datetime.now()
-models.signals.pre_save.connect(date_set)
 
 
 class ContentModelQuerySet(models.QuerySet):
@@ -98,12 +92,6 @@ class BaseContentModel(DateAuditModel):
         return self.get_next(self.__class__.objects.live(), loop)
 
 
-def set_pub_date(sender, **kwargs):
-    if not getattr(kwargs['instance'], 'pub_date', None):
-        kwargs['instance'].pub_date = datetime.date.today()
-models.signals.pre_save.connect(set_pub_date, sender=BaseContentModel)
-
-
 class BaseSortedModel(models.Model):
     """Provides a sort_order field and orders on it by default."""
     
@@ -112,13 +100,6 @@ class BaseSortedModel(models.Model):
     class Meta:
         abstract = True
         ordering = ('sort_order', 'id')
-
-
-def set_sort_order(sender, **kwargs):
-    if isinstance(kwargs['instance'], BaseSortedModel):
-        if not getattr(kwargs['instance'], 'sort_order', None):
-            kwargs['instance'].sort_order = 0
-models.signals.pre_save.connect(set_sort_order)
 
 
 class BaseModelWithImages(models.Model):

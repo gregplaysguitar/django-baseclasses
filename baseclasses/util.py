@@ -1,3 +1,5 @@
+# coding: utf8
+
 from django.db import models
 
 
@@ -55,7 +57,6 @@ class LambdaManager(models.Manager):
     
     def __init__(self, f):
         super(LambdaManager, self).__init__()
-
         self.transform = f
     
     def get_queryset(self):
@@ -64,4 +65,3 @@ class LambdaManager(models.Manager):
     # backwards-compatibility
     def get_query_set(self):
         return self.transform(super(LambdaManager, self).get_query_set())
-
