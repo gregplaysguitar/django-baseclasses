@@ -46,5 +46,6 @@ def next_or_prev_in_order(instance, prev=False, qs=None, loop=False):
     except IndexError:
         length = qs.count()
         if loop and length > 1:
-            return qs[(length - 1) if prev else 0]
+            # queryset is reversed above if prev
+            return qs[0]
     return None
