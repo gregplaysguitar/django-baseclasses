@@ -2,9 +2,8 @@
 # coding: utf8
 
 from setuptools import setup, find_packages
-from setuptools.command.test import test
 
-# avoid importing the module 
+# avoid importing the module
 exec(open('baseclasses/_version.py').read())
 
 setup(

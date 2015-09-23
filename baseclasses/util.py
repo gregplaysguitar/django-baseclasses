@@ -11,11 +11,11 @@ def get_model_attr(instance, attr):
 
 
 def next_or_prev_in_order(instance, prev=False, qs=None, loop=False):
-    """Get the next (or previous with prev=True) item for instance, from the 
-       given queryset (which is assumed to contain instance) respecting 
+    """Get the next (or previous with prev=True) item for instance, from the
+       given queryset (which is assumed to contain instance) respecting
        queryset ordering. If loop is True, return the first/last item when the
        end/start is reached. """
-    
+
     if not qs:
         qs = instance.__class__.objects
     if prev:
@@ -31,14 +31,16 @@ def next_or_prev_in_order(instance, prev=False, qs=None, loop=False):
     else:
         ordering = []
 
-    for field in (ordering + ['pk',]):
+    for field in (ordering + ['pk']):
         if field[0] == '-':
             this_lookup = (lookup == 'gt' and 'lt' or 'gt')
             field = field[1:]
         else:
             this_lookup = lookup
-        q_kwargs = dict([(f, get_model_attr(instance, f)) for f in prev_fields])
-        q_kwargs["%s__%s" % (field, this_lookup)] = get_model_attr(instance, field)
+        q_kwargs = dict([(f, get_model_attr(instance, f))
+                         for f in prev_fields])
+        key = "%s__%s" % (field, this_lookup)
+        q_kwargs[key] = get_model_attr(instance, field)
         q_list.append(models.Q(**q_kwargs))
         prev_fields.append(field)
     try:
