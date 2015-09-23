@@ -17,7 +17,7 @@ class DateAuditModel(models.Model):
     """Extend this class to get a record of when your model was created and 
        last changed."""
     
-    creation_date = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
     
     def get_prev(self, qs=None, loop=False):
@@ -28,7 +28,7 @@ class DateAuditModel(models.Model):
     
     class Meta:
         abstract = True
-        ordering = ('-creation_date',)
+        ordering = ('-created',)
 
 
 class ContentModelQuerySet(models.QuerySet):
@@ -64,8 +64,8 @@ class BaseContentModel(DateAuditModel):
     
     class Meta(DateAuditModel.Meta):
         abstract = True
-        ordering = ('-pub_date', '-creation_date',)
     
+        ordering = ('-pub_date', '-created',)
     def prev_live(self, loop=False):
         return self.get_prev(self.__class__.objects.live(), loop)
         
