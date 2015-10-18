@@ -79,7 +79,7 @@ class BaseContentModel(DateAuditModel):
 class BaseSortedModel(models.Model):
     """Provides a sort_order field and orders on it by default."""
 
-    sort_order = models.IntegerField(default=0, blank=True)
+    sort_order = models.IntegerField(default=0)
 
     class Meta:
         abstract = True
