@@ -123,7 +123,7 @@ class BaseImageModel(BaseSortedModel):
         max_dimensions=getattr(settings, 'MAX_IMAGE_DIMENSIONS', None))
 
     def __unicode__(self):
-        return self.caption or (u'Image: ' % self.image)
+        return self.caption or (u'Image: %s' % self.image)
 
     class Meta(BaseSortedModel.Meta):
         abstract = True
