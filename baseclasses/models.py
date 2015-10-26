@@ -9,7 +9,6 @@ import datetime
 from django.db import models
 from django.conf import settings
 
-from .fields import ConstrainedImageField
 from .util import next_or_prev_in_order
 
 
@@ -117,10 +116,8 @@ class BaseImageModel(BaseSortedModel):
 
        For an example see the BaseModelWithImages docstring."""
 
-    caption = models.CharField(max_length=255, default='', blank=True)
-    image = ConstrainedImageField(
-        u'image file', upload_to=settings.UPLOAD_PATH,
-        max_dimensions=getattr(settings, 'MAX_IMAGE_DIMENSIONS', None))
+    caption = models.TextField(default='', blank=True)
+    image = models.FileField(upload_to=settings.UPLOAD_PATH)
 
     def __unicode__(self):
         return self.caption or (u'Image: %s' % self.image)
