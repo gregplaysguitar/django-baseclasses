@@ -147,7 +147,6 @@ class BaseImageModel(BaseSortedModel):
         ordering = BaseSortedModel.Meta.ordering + ('caption',)
 
 
-@python_2_unicode_compatible
 class BaseHierarchyModel(models.Model):
     """Provides a simple hierarchy system, useful when categories and
        subcategories are needed. Provides get_hierarchy method, which is
