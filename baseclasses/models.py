@@ -8,8 +8,8 @@ import datetime
 
 from django.db import models
 from django.conf import settings
+from django.utils.encoding import python_2_unicode_compatible
 
-from .fields import ConstrainedImageField
 from .util import next_or_prev_in_order
 
 
@@ -126,18 +126,17 @@ class BaseModelWithImages(models.Model):
             return None
 
 
+@python_2_unicode_compatible
 class BaseImageModel(BaseSortedModel):
     """Use this in conjunction with BaseModelWithImages or
        BaseContentModelWithImages.
 
        For an example see the BaseModelWithImages docstring."""
 
-    caption = models.CharField(max_length=255, default='', blank=True)
-    image = ConstrainedImageField(
-        u'image file', upload_to=settings.UPLOAD_PATH,
-        max_dimensions=getattr(settings, 'MAX_IMAGE_DIMENSIONS', None))
+    caption = models.TextField(default='', blank=True)
+    image = models.FileField(upload_to=settings.UPLOAD_PATH)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.caption or (u'Image: %s' % self.image)
 
     class Meta(BaseSortedModel.Meta):
@@ -145,6 +144,7 @@ class BaseImageModel(BaseSortedModel):
         ordering = BaseSortedModel.Meta.ordering + ('caption',)
 
 
+@python_2_unicode_compatible
 class BaseHierarchyModel(models.Model):
     """Provides a simple hierarchy system, useful when categories and
        subcategories are needed. Provides get_hierarchy method, which is
@@ -158,9 +158,6 @@ class BaseHierarchyModel(models.Model):
     parent = models.ForeignKey('self', null=True, blank=True,
                                related_name='children',
                                limit_choices_to={'parent__isnull': True})
-
-    def __unicode__(self):
-        return ' > '.join([c.name for c in self.get_hierarchy()])
 
     def get_parent_display(self):
         return self.parent or ''

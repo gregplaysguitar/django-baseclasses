@@ -1,4 +1,5 @@
 # coding: utf8
+from functools import reduce
 
 from django.db import models
 
