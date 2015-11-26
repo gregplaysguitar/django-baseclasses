@@ -32,7 +32,18 @@ class DateAuditModel(models.Model):
 
 
 class ContentModelQuerySet(models.QuerySet):
-    def live(self):
+    def live(self, request=None):
+        """If request is passed, and a preview flag is in request.GET,
+           then check if the user is a staff member, and return all objects
+           if so. Otherwise, return only live objects.
+
+           Note, django doesn't allow view caching on any request that accesses
+           request.user, so this must ONLY happen if the preview flag is
+           present. Otherwise, the view can never be cached. """
+
+        if request and request.GET.get('preview') and request.user.is_staff:
+            return self
+
         return self.filter(is_live=True,
                            pub_date__lte=datetime.datetime.now())
 
@@ -64,6 +75,10 @@ class BaseContentModel(DateAuditModel):
                   "not be in the future, for the item to show on the site.")
 
     objects = ContentModelManager()
+
+    @property
+    def live(self):
+        return self.is_live and self.pub_date <= datetime.date.today()
 
     class Meta(DateAuditModel.Meta):
         abstract = True
