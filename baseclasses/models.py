@@ -13,6 +13,9 @@ from django.utils.encoding import python_2_unicode_compatible
 from .util import next_or_prev_in_order
 
 
+PREVIEW_FLAG = 'preview'
+
+
 class DateAuditModel(models.Model):
     """Extend this class to get a record of when your model was created and
        last changed."""
@@ -41,7 +44,7 @@ class ContentModelQuerySet(models.QuerySet):
            request.user, so this must ONLY happen if the preview flag is
            present. Otherwise, the view can never be cached. """
 
-        if request and request.GET.get('preview') and request.user.is_staff:
+        if request and request.GET.get(PREVIEW_FLAG) and request.user.is_staff:
             return self
 
         return self.filter(is_live=True,
