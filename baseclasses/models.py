@@ -96,7 +96,7 @@ class BaseModelWithImages(models.Model):
            ...
 
        class ArticleImage(BaseImageModel;):
-           article = models.ForeignKey(Article, related_name='image_set')
+           article = models.ForeignKey(Article, related_name='image_set', on_delete=models.CASCADE)
 
        >>> Article.objects.get(...).primary_image()"""
 
@@ -142,6 +142,7 @@ class BaseHierarchyModel(models.Model):
 
     parent = models.ForeignKey('self', null=True, blank=True,
                                related_name='children',
+                               on_delete=models.CASCADE,
                                limit_choices_to={'parent__isnull': True})
 
     def get_parent_display(self):
