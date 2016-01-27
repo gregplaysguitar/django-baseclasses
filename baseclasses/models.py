@@ -9,6 +9,7 @@ import datetime
 from django.db import models
 from django.conf import settings
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils.functional import cached_property
 
 from .util import next_or_prev_in_order
 
@@ -121,7 +122,7 @@ class BaseModelWithImages(models.Model):
     class Meta:
         abstract = True
 
-    @property
+    @cached_property
     def primary_image(self):
         try:
             return self.image_set.all()[0]
