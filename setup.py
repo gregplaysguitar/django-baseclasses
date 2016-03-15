@@ -10,7 +10,7 @@ setup(
     name='django-baseclasses',
     version=__version__,
     description='A set of reusable base classes and helpers for django',
-    long_description=open('readme.markdown').read(),
+    long_description=open('README.md').read(),
     author='Greg Brown',
     author_email='greg@gregbrown.co.nz',
     url='https://github.com/gregplaysguitar/django-baseclasses',
