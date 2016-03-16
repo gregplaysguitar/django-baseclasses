@@ -7,8 +7,7 @@ for django.
 
 Or with pip:
 
-    pip install -e git+https://github.com/gregplaysguitar/\
-    django-baseclasses.git@master#egg=django_baseclasses-master
+    pip install django-baseclasses
 
 ## Abstract classes provided in `baseclasses.models`
 
