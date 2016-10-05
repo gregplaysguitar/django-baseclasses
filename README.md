@@ -59,6 +59,19 @@ Get the next (or previous with prev=True) item for an instance, from the given
 queryset (which is assumed to contain instance), respecting queryset ordering.
 If loop is True, return the first/last item when the end/start is reached.
 
+#### `baseclasses.admin.ContentModelAdminMixin`
+
+Enables (cache-safe) admin preview of non-live objects. Example
+
+    @admin.register(MyModel)
+    class MyModelAdmin(ContentModelAdminMixin, admin.ModelAdmin):
+        ...
+
+Pass the request to the model's `live` manager method to enable preview:
+
+    def my_model_view(request, slug)
+        instance = get_object_or_404(MyModel.objects.live(request), slug=slug)
+        ...
 
 ## Example:
    
