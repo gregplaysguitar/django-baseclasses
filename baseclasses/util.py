@@ -18,7 +18,7 @@ def next_or_prev_in_order(instance, prev=False, qs=None, loop=False):
        end/start is reached. """
 
     if not qs:
-        qs = instance.__class__.objects
+        qs = instance.__class__.objects.all()
     if prev:
         qs = qs.reverse()
         lookup = 'lt'
