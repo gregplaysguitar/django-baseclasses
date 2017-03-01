@@ -137,8 +137,8 @@ class BaseImageModel(BaseSortedModel):
 
        For an example see the BaseModelWithImages docstring."""
 
-    caption = models.TextField(default='', blank=True)
     image = models.ImageField(upload_to=settings.UPLOAD_PATH)
+    caption = models.TextField(default='', blank=True)
 
     def __str__(self):
         return self.caption or (u'Image: %s' % self.image)
