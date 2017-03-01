@@ -27,7 +27,7 @@ def next_or_prev_in_order(instance, prev=False, qs=None, loop=False):
 
     q_list = []
     prev_fields = []
-    ordering = list(qs.query.order_by)
+    ordering = list(qs.query.order_by) or list(qs.query.get_meta().ordering)
 
     for field in (ordering + ['pk']):
         if field[0] == '-':
