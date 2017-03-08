@@ -6,6 +6,7 @@
 
 import datetime
 
+import django
 from django.db import models
 from django.conf import settings
 from django.utils.encoding import python_2_unicode_compatible
@@ -53,6 +54,9 @@ class ContentModelQuerySet(models.QuerySet):
 
 
 def default_manager_from_qs(QuerySet, **kwargs):
+    """Sets base manager in django < 1.10. This is obsolete in 1.10+ and will
+       trigger a warning. """
+
     related = kwargs.pop('use_for_related_fields', True)
 
     class _Manager(models.Manager.from_queryset(QuerySet)):
@@ -61,7 +65,10 @@ def default_manager_from_qs(QuerySet, **kwargs):
     return _Manager
 
 
-ContentModelManager = default_manager_from_qs(ContentModelQuerySet)
+if django.VERSION < (1, 10):
+    ContentModelManager = default_manager_from_qs(ContentModelQuerySet)
+else:
+    ContentModelManager = models.Manager.from_queryset(ContentModelQuerySet)
 
 
 class BaseContentModel(DateAuditModel):
