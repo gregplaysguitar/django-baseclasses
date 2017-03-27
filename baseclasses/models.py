@@ -112,37 +112,10 @@ class BaseSortedModel(models.Model):
         ordering = ('sort_order', 'id')
 
 
-class BaseModelWithImages(models.Model):
-    """Basic model for use with related images (needs a related Image model
-       with the related_name 'image_set'). Provides primary_image method.
-
-       Example implementation:
-
-       class Article(BaseModelWithImages):
-           ...
-
-       class ArticleImage(BaseImageModel;):
-           article = models.ForeignKey(Article, related_name='image_set', on_delete=models.CASCADE)
-
-       >>> Article.objects.get(...).primary_image()"""
-
-    class Meta:
-        abstract = True
-
-    @cached_property
-    def primary_image(self):
-        try:
-            return self.image_set.all()[0]
-        except IndexError:
-            return None
-
-
 @python_2_unicode_compatible
 class BaseImageModel(BaseSortedModel):
-    """Use this in conjunction with BaseModelWithImages or
-       BaseContentModelWithImages.
-
-       For an example see the BaseModelWithImages docstring."""
+    """Standard sorted image model, intended to be related to a 
+       parent object via ForeignKey."""
 
     image = models.ImageField(upload_to=settings.UPLOAD_PATH)
     caption = models.TextField(default='', blank=True)
