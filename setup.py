@@ -26,7 +26,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     platforms='any',
-    install_requires=['Django>=1.7'],
+    install_requires=['Django>=1.8', 'django-next-prev>=1.0'],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',

@@ -12,7 +12,7 @@ from django.conf import settings
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.functional import cached_property
 
-from .util import next_or_prev_in_order
+from next_prev import next_or_prev_in_order
 
 
 PREVIEW_FLAG = 'preview'
@@ -114,7 +114,7 @@ class BaseSortedModel(models.Model):
 
 @python_2_unicode_compatible
 class BaseImageModel(BaseSortedModel):
-    """Standard sorted image model, intended to be related to a 
+    """Standard sorted image model, intended to be related to a
        parent object via ForeignKey."""
 
     image = models.ImageField(upload_to=settings.UPLOAD_PATH)
