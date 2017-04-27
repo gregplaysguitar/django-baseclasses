@@ -33,7 +33,7 @@ class DateAuditModel(models.Model):
 
     class Meta:
         abstract = True
-        ordering = ('-created',)
+        ordering = ('-created', '-pk')
 
 
 class ContentModelQuerySet(models.QuerySet):
@@ -93,7 +93,7 @@ class BaseContentModel(DateAuditModel):
 
     class Meta(DateAuditModel.Meta):
         abstract = True
-        ordering = ('-pub_date', '-created',)
+        ordering = ('-pub_date', '-created', '-pk')
 
     def prev_live(self, loop=False):
         return self.get_prev(self.__class__.objects.live(), loop)
@@ -109,7 +109,7 @@ class BaseSortedModel(models.Model):
 
     class Meta:
         abstract = True
-        ordering = ('sort_order', 'id')
+        ordering = ('sort_order', 'pk')
 
 
 @python_2_unicode_compatible
@@ -125,7 +125,6 @@ class BaseImageModel(BaseSortedModel):
 
     class Meta(BaseSortedModel.Meta):
         abstract = True
-        ordering = BaseSortedModel.Meta.ordering + ('caption',)
 
 
 class BaseHierarchyModel(models.Model):
