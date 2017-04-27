@@ -26,10 +26,10 @@ class DateAuditModel(models.Model):
     last_updated = models.DateTimeField(auto_now=True)
 
     def get_prev(self, qs=None, loop=False):
-        return next_or_prev_in_order(self, True, qs, loop)
+        return next_or_prev_in_order(self, qs=qs, prev=True, loop=loop)
 
     def get_next(self, qs=None, loop=False):
-        return next_or_prev_in_order(self, False, qs, loop)
+        return next_or_prev_in_order(self, qs=qs, prev=False, loop=loop)
 
     class Meta:
         abstract = True
