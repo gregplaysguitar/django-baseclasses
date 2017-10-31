@@ -1,4 +1,4 @@
-# coding: utf8
+# coding: utf-8
 
 """A collection of mixins and associated utilities for django models.
 
